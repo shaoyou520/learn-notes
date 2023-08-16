@@ -1,0 +1,21 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  creationTimestamp: "2023-05-29T08:14:57Z"
+  finalizers:
+  - kubernetes.io/pvc-protection
+  labels:
+    app.kubernetes.io/component: kafka
+    app.kubernetes.io/instance: my-kafka
+    app.kubernetes.io/name: kafka
+  name: data-my-kafka-0
+  namespace: default
+  resourceVersion: "4729261"
+  uid: 38d05d65-c151-44f7-a4ac-09609636be57
+spec:
+  accessModes:
+  - ReadWriteOnce
+  resources:
+    requests:
+      storage: 8Gi
+  volumeMode: Filesystem

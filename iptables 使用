@@ -1,0 +1,33 @@
+查询iptables
+iptables -t nat -nL --line
+
+删除iptables
+iptables -t nat -D OUTPUT 1
+
+iptables -t nat -F 清除所有链的规则
+
+
+
+iptables -t nat -A PREROUTING -s 0/0 -d 182.43.15.51 -p tcp --dport 9443 -jDNAT --to 10.0.1.100
+iptables -t nat -A POSTROUTING -d 10.0.1.100 -p tcp --dport 9443 -o eth1 -j SNAT --to 182.43.15.51
+
+iptables -t nat -A PREROUTING -s 0/0 -d 10.0.0.210 -p tcp --dport 9443 -jDNAT --to 10.0.1.100
+iptables -t nat -A POSTROUTING -d 10.0.1.100 -p tcp --dport 9443 -o eth1 -j SNAT --to 10.0.0.210
+
+
+iptables -t nat -A OUTPUT -p tcp -d 10.244.6.176 --dport 443 -j DNAT --to 182.43.15.195:600
+
+
+iptables -t nat -A OUTPUT -s 0/0 -d 10.0.1.152 -p tcp -jDNAT --to 182.43.15.51
+
+iptables -t nat -A OUTPUT -s 0/0 -p tcp --dport 80 -jDNAT --to
+
+
+iptables -t nat -A OUTPUT -d 10.0.0.210 -j DNAT --to-destination 182.43.15.195
+iptables -t nat -A OUTPUT -d 10.0.1.152 -j DNAT --to-destination 182.43.15.51
+iptables -t nat -A OUTPUT -d 10.0.3.54 -j DNAT --to-destination 182.43.50.112
+
+iptables -t nat -A OUTPUT -d 10.0.1.207 -j DNAT --to-destination 182.43.110.62
+
+iptables -t nat -A OUTPUT -s 0/0 -d 10.0.1.207 -p tcp -jDNAT --to 182.43.110.62
+iptables -t nat -A OUTPUT -s 0/0 -d 10.96.0.1 -p tcp -jDNAT --to 182.43.110.62

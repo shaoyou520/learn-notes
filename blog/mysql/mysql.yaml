@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-rc
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app1: mysql
+  template:
+    metadata:
+      labels:
+        app1: mysql
+    spec:
+      #添加标签调度
+      #nodeSelector:
+      #  app1: mysql
+      
+      #根据 NodeName 调度 
+      nodeName: node2 
+      containers:
+      - name: mysql
+        image: mysql:5.7
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3306
+        env:
+        - name: ALLOW_EMPTY_PASSWORD
+          value: "yes"
+        - name: MYSQL_ROOT_USER
+          value: root
+        - name: MYSQL_ROOT_PASSWORD
+          value: Mrtoo902li
+        - name: MYSQL_CHARACTER_SET
+          value: utf8
+        - name: MYSQL_COLLATE
+          value: utf8_general_ci
+        - name: MYSQL_DATABASE
+          value: face_privatization
+        volumeMounts:
+        - name: mysql
+          mountPath: /var/lib/mysql
+      volumes:
+        - name: mysql
+          hostPath:
+            path: /root/test/data2/mysql
+      restartPolicy: Always
+
+
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mysql-svc
+  labels:
+    app1: mysql
+spec:
+  type: NodePort
+  ports:
+  - port: 3306
+    protocol: TCP
+    targetPort: 3306
+    name: http
+    nodePort: 32306
+  selector:
+    app1: mysql

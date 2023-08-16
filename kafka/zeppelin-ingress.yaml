@@ -1,0 +1,17 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zeppelin-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: zeppelin.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: zeppelin-server
+                port:
+                  number: 80

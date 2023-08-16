@@ -1,0 +1,120 @@
+设置hostname
+vi /etc/hostname
+reboot
+
+关闭SELINUX：
+setenforce 0
+sed -ri 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
+
+设置跳转允许：
+modprobe br_netfilter
+cat > /etc/sysctl.d/k8s.conf << EOF
+net.bridge.bridge-nf-call-ip6tables = 1
+net.bridge.bridge-nf-call-iptables = 1
+net.ipv4.ip_forward = 1
+vm.swappiness = 0
+EOF
+
+sysctl -p /etc/sysctl.d/k8s.conf
+
+关闭SWAP分区：
+swapoff -a
+sed -i 's/.*swap.*/#&/g' /etc/fstab
+
+安装docker， containerd
+--安装yumconfig 工具：
+yum install -y yum-utils \
+  device-mapper-persistent-data \
+  lvm2
+--配置docker repo
+yum-config-manager \
+    --add-repo \
+    http://mirrors.aliyun.com/docker-ce/linux/centos/docker-ce.repo
+--安装docker
+yum install docker-ce docker-ce-cli containerd.io docker-compose-plugin -y
+--设置开机自启动
+systemctl enable docker
+--配置containerd
+containerd config default > /etc/containerd/config.toml
+sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+sed -i 's/registry.k8s.io/registry.aliyuncs.com\/google_containers/' /etc/containerd/config.toml
+--重启containerd
+systemctl restart containerd
+--配置docker 阿里镜像源
+sudo mkdir -p /etc/docker
+sudo tee /etc/docker/daemon.json <<-'EOF'
+{
+  "registry-mirrors": ["https://ah0vbq3i.mirror.aliyuncs.com"]
+}
+EOF
+sudo systemctl daemon-reload
+sudo systemctl restart docker
+
+配置kubernetes.repo
+cat > /etc/yum.repos.d/kubernetes.repo << EOF
+[kubernetes]
+name=Kubernetes
+baseurl=https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64
+enabled=1
+gpgcheck=0
+repo_gpgcheck=0
+gpgkey=https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+EOF
+安装
+ yum install -y kubelet kubeadm kubectl
+
+修改cgroups：
+vim /etc/sysconfig/kubelet
+sed -i 's/KUBELET_EXTRA_ARGS=/KUBELET_EXTRA_ARGS="--cgroup-driver=systemd"/' /etc/sysconfig/kubelet
+
+设置kubelet为开机自启动即可，由于没有生成配置文件，集群初始化后自动启动
+# systemctl enable kubelet
+
+master:
+安装etcd：
+wget https://github.com/kubernetes-sigs/etcdadm/releases/download/v0.1.5/etcdadm-linux-amd64
+chmod +x etcdadm-linux-amd64
+mv etcdadm-linux-amd64 /usr/bin/etcdadm
+etcdadm init --name master --server-cert-extra-sans 182.43.110.62
+/opt/bin/etcdctl.sh endpoint health
+
+https://10.0.1.207:2379
+
+-- 获取初始化配置
+kubeadm config print init-defaults > init-default.yaml
+cp init-default.yaml init.yaml
+修改init.yaml（查看init.yaml 文件）
+
+kubeadm init --config init.yaml --upload-certs
+
+mkdir -p $HOME/.kube
+sudo cp -i /etc/kubernetes/admin.conf $HOME/.kube/config
+sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+node执行：
+kubeadm join 182.43.110.62:6443 --token abcdef.0123456789abcdef \
+--discovery-token-ca-cert-hash sha256:3392c003d7cad4195a01c5efe33aa56a522b8c2d5a7bfe5cbdaefed002525102
+
+master执行 kubectl get nodes， 节点出于 NotReady， 没有安装CNI，本文使用CNI flannel
+```
+master：
+iptables -t nat -A OUTPUT -d 10.0.0.210 -j DNAT --to-destination 182.43.15.195
+iptables -t nat -A OUTPUT -d 10.0.1.152 -j DNAT --to-destination 182.43.15.51
+iptables -t nat -A OUTPUT -d 10.0.3.54 -j DNAT --to-destination 182.43.50.112
+
+node：
+iptables -t nat -A OUTPUT -d 10.0.1.207 -j DNAT --to-destination 182.43.110.62
+```
+kubectl annotate node node flannel.alpha.coreos.com/public-ip-overwrite=182.43.110.62
+kubectl annotate node node1 flannel.alpha.coreos.com/public-ip-overwrite=182.43.15.195
+kubectl annotate node node2 flannel.alpha.coreos.com/public-ip-overwrite=182.43.15.51
+kubectl annotate node node3 flannel.alpha.coreos.com/public-ip-overwrite=182.43.50.112
+
+wget –no-check-certificate https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+kubectl apply -f kube-flannel.yml
+
+
+
+
+
+

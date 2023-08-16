@@ -1,0 +1,30 @@
+问题一： codedns 安装时缺少插件：
+wget https://github.com/containernetworking/plugins/releases/download/v1.0.1/cni-plugins-linux-arm64-v1.0.1.tgz
+tar axvf ./cni-plugins-linux-arm64-v1.0.1.tgz  -C /opt/cni/bin/
+# 补充缺失的包即可
+
+问题二：
+kube-proxy报错 Failed to delete stale service IP
+解决：
+yum -y install conntrack
+
+问题三："Error syncing pod, skipping" err="failed to \"CreatePodSandbox\" for
+\"kube-flannel-ds-8rb9r_kube-flannel(2d3a56cd-32d3-4285-8b25-642005d8cb4d)\"
+with CreatePodSandboxError: \"Failed to create sandbox for pod \\\
+"kube-flannel-ds-8rb9r_kube-flannel(2d3a56cd-32d3-4285-8b25-642005d8cb4d)\\\":
+rpc error: code = DeadlineExceeded desc = failed to get sandbox image \\\
+"registry.k8s.io/pause:3.6\\\": failed to pull image \\\"registry.k8s.io/pause:3.6\\\":
+failed to pull and unpack image \\\"registry.k8s.io/pause:3.6\\\":
+failed to resolve reference \\\"registry.k8s.io/pause:3.6\\\":
+failed to do request: Head \\\"https://asia-east1-docker.pkg.dev/v2/k8s-artifacts-prod/
+images/pause/manifests/3.6\\\": dial tcp 74.125.203.82:443: i/o timeout\""
+pod="kube-flannel/kube-flannel-ds-8rb9r" podUID=2d3a56cd-32d3-4285-8b25-642005d8cb4d
+解决：
+containerd config default > /etc/containerd/config.toml
+vi /etc/containerd/config.toml
+systemctl daemon-reload && systemctl restart containerd
+
+问题四：service 网络不通，node节点curl不通clusterip
+
+
+https://10.0.1.207:10250/metrics/resource

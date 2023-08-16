@@ -1,0 +1,8 @@
+apiservice_public_ip 182.43.110.62
+node1_public_ip 182.43.15.195
+node2_public_ip 182.43.15.51
+node3_public_ip 182.43.50.112
+node1_private_ip 10.0.0.210
+node2_private_ip 10.0.1.152
+master_private_ip 10.0.1.207
+node3_private_ip 10.0.3.54

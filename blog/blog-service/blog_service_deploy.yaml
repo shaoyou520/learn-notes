@@ -1,0 +1,30 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: blog-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: blog-service-pod
+  template:
+    metadata:
+      labels:
+        app: blog-service-pod
+    spec:
+      containers:
+        - name: blog-service-app
+          image: registry.cn-hangzhou.aliyuncs.com/qt1/blog_service:2.0.0
+          imagePullPolicy: IfNotPresent
+          command: ['bash', '-c', "cd /root/code/sy_statistics_service && nginx && git pull && mvn clean package && java -jar ./target/sy_statistics_service-1.0-SNAPSHOT.jar"]
+          volumeMounts:
+            - name: pictures
+              mountPath: /opt/images/images
+      volumes:
+        - name: pictures
+          hostPath:
+            path: /opt/blog_service/images
+      restartPolicy: Always
+      imagePullSecrets:
+        - name: self-registry
+

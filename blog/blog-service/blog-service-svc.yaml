@@ -1,0 +1,19 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: blog-service-svc
+  labels:
+    app: blog-service-svc
+spec:
+  ports:
+    - port: 9090
+      name: service
+      protocol: TCP
+      targetPort: 9090
+    - port: 8088
+      name: nginx
+      protocol: TCP
+      targetPort: 80
+  selector:
+    app: blog-service-pod

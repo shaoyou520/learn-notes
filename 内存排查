@@ -1,0 +1,3 @@
+内存占用高的前20
+ps aux | head -1;ps aux |grep -v PID |sort -rn -k +4 | head -20
+

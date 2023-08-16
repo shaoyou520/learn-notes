@@ -1,0 +1,38 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: bigdata-kafka-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: kafka.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: my-kafka
+                port:
+                  number: 9092
+    - host: yarn.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: qt-hadoop-hadoop-yarn-ui
+                port:
+                  number: 8088
+    - host: hdfs.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: qt-hadoop-hadoop-hdfs-nn
+                port:
+                  number: 9870
+

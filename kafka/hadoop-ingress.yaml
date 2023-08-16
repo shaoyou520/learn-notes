@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: hadoop-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: yarn.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: my-hadoop-hadoop-yarn-ui
+                port:
+                  number: 8088
+    - host: nn.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: my-hadoop-hadoop-hdfs-nn
+                port:
+                  number: 9870
