@@ -20,3 +20,5 @@
 .idea/
 *.tmproj
 docs
+image
+hadoop-*.tgz

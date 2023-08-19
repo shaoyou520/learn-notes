@@ -101,5 +101,6 @@ spec:
     {{- end }}
       {{- else }}
       - name: dfs
-        emptyDir: {}
+        hostPath:
+          path: /opt/hadoop/namenode
       {{- end }}

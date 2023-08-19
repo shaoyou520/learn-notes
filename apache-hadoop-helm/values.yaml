@@ -81,10 +81,10 @@ persistence:
     enabled: false
     storageClass: "-"
     accessMode: ReadWriteOnce
-    size: 50Gi
+    size: 10Gi
 
   dataNode:
     enabled: false
     storageClass: "-"
     accessMode: ReadWriteOnce
-    size: 200Gi
+    size: 10Gi
