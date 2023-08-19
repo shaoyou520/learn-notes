@@ -779,13 +779,13 @@ data:
       </property>
       -->
 
-      <!--
       <property>
       <name>zeppelin.recovery.storage.class</name>
       <value>org.apache.zeppelin.interpreter.recovery.LocalRecoveryStorage</value>
       <description>ReoveryStorage implementation based on java native local file system</description>
       </property>
 
+      <!--
       <property>
       <name>zeppelin.recovery.storage.class</name>
       <value>org.apache.zeppelin.interpreter.recovery.FileSystemRecoveryStorage</value>
@@ -793,13 +793,11 @@ data:
       </property>
       -->
 
-      <!--
       <property>
       <name>zeppelin.recovery.dir</name>
       <value>recovery</value>
       <description>Location where recovery metadata is stored</description>
       </property>
-      -->
 
       <!-- GitHub configurations
       <property>
@@ -925,8 +923,6 @@ spec:
   selector:
     matchLabels:
       app.kubernetes.io/name: zeppelin-server
-  strategy:
-    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -940,19 +936,18 @@ spec:
           items:
           - key: nginx.conf
             path: nginx.conf
-      - name: mvn-repo
-        persistentVolumeClaim:
-          claimName: mvn-repo-pvc
-          readOnly: true
       - name: soft-pkg
         hostPath:
           path: /opt/soft-pkg
       - name: zeppelin-server-notebook-volume
         hostPath:
           path: /opt/zeppelin/notebook
-      - name: zeppelin-server-conf
+      - name: zeppelin-server-recovery-volume
         hostPath:
-          path: /opt/zeppelin/notebook
+          path: /opt/zeppelin/recovery
+      - name: zeppelin-server-conf
+        configMap:
+          name: zeppelin-server-conf
       containers:
       - name: zeppelin-server
         image: registry.cn-hangzhou.aliyuncs.com/qt1/zeppelin:0.10.1
@@ -986,13 +981,13 @@ spec:
             name: zeppelin-server-conf-map
         volumeMounts:
          - name: zeppelin-server-notebook-volume     # configure this to persist notebook
-           mountPath: /zeppelin/notebook
+           mountPath: /opt/zeppelin/notebook
+         - name: zeppelin-server-recovery-volume     # configure this to persist notebook
+           mountPath: /opt/zeppelin/recovery
          - name: zeppelin-server-conf                # configure this to persist Zeppelin configuration
-           mountPath: /zeppelin/conf/zeppelin-site.xml
+           mountPath: /opt/zeppelin/conf/zeppelin-site.xml
            subPath: zeppelin-site.xml
            readOnly: true
-         - name: mvn-repo
-           mountPath: /opt/zeppelin/.m2/repository
          - name: soft-pkg
            mountPath: /opt/zeppelin/soft-pkg
       - name: zeppelin-server-gateway
