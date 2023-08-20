@@ -1,0 +1,25 @@
+docker run -it build_tools bash
+
+apt-get update -y \
+    && apt-get install git -y \
+    && apt-get install wget -y \
+    && apt-get install openjdk-8-jdk -y \
+     && apt-get install npm -y \
+    && apt-get install libfontconfig -y \
+    && apt-get install r-base-dev -y \
+     && apt-get install r-cran-evaluate -y
+
+git clone https://github.com/apache/zeppelin.git
+
+修改：zeppelin-web pom.xml  1: run build:dist 添加 --force 2:dist\WEB-INF\web.xml 改成 src\WEB-INF\web.xml
+
+cd zeppelin
+
+./dev/change_scala_version.sh 2.12
+mvn clean package -Pscala-2.12 -DskipTests -Pbuild-distr
+
+mvn clean package -DskipTests
+
+
+
+
