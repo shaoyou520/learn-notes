@@ -11,6 +11,8 @@ apt-get update -y \
 
 git clone https://github.com/apache/zeppelin.git
 
+mvn clean package -Pscalding -DskipTests
+
 修改：zeppelin-web pom.xml  1: run build:dist 添加 --force 2:dist\WEB-INF\web.xml 改成 src\WEB-INF\web.xml
 
 cd zeppelin
