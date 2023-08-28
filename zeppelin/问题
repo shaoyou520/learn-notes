@@ -1,0 +1,5 @@
+java.lang.ClassNotFoundException: org.apache.hadoop.yarn.api.ApplicationConstants$Environment
+
+确实jar，放flink lib下
+https://repo1.maven.org/maven2/commons-cli/commons-cli/1.4/commons-cli-1.4.jar
+https://repository.cloudera.com/artifactory/cloudera-repos/org/apache/flink/flink-shaded-hadoop-3-uber/3.1.1.7.2.9.0-173-9.0/flink-shaded-hadoop-3-uber-3.1.1.7.2.9.0-173-9.0.jar
