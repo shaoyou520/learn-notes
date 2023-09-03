@@ -249,6 +249,10 @@ data:
         <name>mapreduce.jobhistory.webapp.address</name>
         <value>{{ include "hadoop.fullname" . }}-yarn-rm-0.{{ include "hadoop.fullname" . }}-yarn-rm.{{ .Release.Namespace }}.svc.cluster.local:19888</value>
       </property>
+      <property>
+        <name>mapreduce.job.reduce.slowstart.completedmaps</name>
+        <value>1</value>
+      </property>
     </configuration>
 
   slaves: |
@@ -269,6 +273,26 @@ data:
         <name>yarn.resourcemanager.bind-host</name>
         <value>0.0.0.0</value>
       </property>
+      <property>
+        <name>yarn.nodemanager.vmem-pmem-ratio</name>
+        <value>6</value>
+      </property>
+      <property>
+        <name>yarn.resourcemanager.address</name>
+        <value>my-hadoop-hadoop-yarn-rm:8032</value>
+      </property>
+      <property>
+        <name>yarn.resourcemanager.scheduler.address</name>
+        <value>my-hadoop-hadoop-yarn-rm:8030</value>
+      </property>
+      <property>
+        <name>yarn.resourcemanager.resource-tracker.address</name>
+        <value>my-hadoop-hadoop-yarn-rm:8031</value>
+      </property>
+      <property>
+          <name>yarn.nodemanager.disk-health-checker.max-disk-utilization-per-disk-percentage</name>
+          <value>95.0</value>
+       </property>
       <property>
         <name>yarn.nodemanager.bind-host</name>
         <value>0.0.0.0</value>

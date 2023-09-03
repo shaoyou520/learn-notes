@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: hadoop-ingress1
+  name: hadoop-ingress
 spec:
   ingressClassName: nginx
   rules:
@@ -35,3 +35,13 @@ spec:
                 name: my-hadoop-hadoop-yarn-rm
                 port:
                   number: 8088
+    - host: my-hadoop-hadoop-yarn-nm
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: my-hadoop-hadoop-yarn-nm
+                port:
+                  number: 8042

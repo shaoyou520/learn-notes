@@ -1,3 +1,5 @@
 内存占用高的前20
 ps aux | head -1;ps aux |grep -v PID |sort -rn -k +4 | head -20
 
+清除cache
+echo 1 > /proc/sys/vm/drop_caches

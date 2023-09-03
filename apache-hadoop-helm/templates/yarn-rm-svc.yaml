@@ -12,6 +12,8 @@ spec:
   ports:
   - port: 8088
     name: web
+  - port: 8030
+    name: schude
   clusterIP: None
   selector:
     app.kubernetes.io/name: {{ include "hadoop.name" . }}
