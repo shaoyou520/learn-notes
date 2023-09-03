@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kafka-chats.fullname" . }}-cmak
+  labels:
+    app: {{ include "kafka-chats.fullname" . }}-cmak
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "kafka-chats.fullname" . }}-cmak
+  template:
+    metadata:
+      labels:
+        app: {{ include "kafka-chats.fullname" . }}-cmak
+    spec:
+      containers:
+        - name: cmak
+          image: qtdocker/cmak:3.0.0.6
+          imagePullPolicy: IfNotPresent
+          volumeMounts:
+            - name: application-conf
+              mountPath: /opt/cmak-3.0.0.6/conf/application.conf
+              subPath: application.conf
+              readOnly: true
+          ports:
+            - name: ui
+              containerPort: 9000
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              path: /
+              port: ui
+            initialDelaySeconds: 100
+            timeoutSeconds: 5
+          readinessProbe:
+            httpGet:
+              path: /
+              port: ui
+            initialDelaySeconds: 100
+            timeoutSeconds: 5
+      volumes:
+        - name: application-conf
+          configMap:
+            name: {{ include "kafka-chats.fullname" . }}

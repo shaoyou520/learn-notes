@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kafka-chats.fullname" . }}-cmak
+  labels:
+    app: {{ include "kafka-chats.fullname" . }}-cmak
+spec:
+  type: NodePort
+  ports:
+    - port: 9000
+      name: http
+  selector:
+    app: {{ include "kafka-chats.fullname" . }}-cmak

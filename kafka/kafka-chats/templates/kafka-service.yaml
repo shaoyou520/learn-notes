@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kafka-chats.fullname" . }}
+  labels:
+    app: {{ include "kafka-chats.fullname" . }}
+spec:
+  type: NodePort
+  ports:
+    - port: 9092
+      name: service
+  selector:
+    app: {{ include "kafka-chats.fullname" . }}

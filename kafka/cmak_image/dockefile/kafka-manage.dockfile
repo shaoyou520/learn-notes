@@ -1,0 +1,26 @@
+from centos:8
+
+
+RUN sed -i -e "s|mirrorlist=|#mirrorlist=|g" /etc/yum.repos.d/CentOS-* \
+    && sed -i -e "s|#baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g" /etc/yum.repos.d/CentOS-* \
+    && yum update -y && yum install java-11-openjdk-devel -y \
+    && yum install java-11-openjdk wget git unzip net-tools -y \
+
+    && rm -f /etc/yum.repos.d/bintray-rpm.repo \
+    && curl -L https://www.scala-sbt.org/sbt-rpm.repo > sbt-rpm.repo \
+    && mv sbt-rpm.repo /etc/yum.repos.d/ \
+    && yum install sbt -y
+
+RUN cd /opt && wget https://github.com/yahoo/CMAK/archive/refs/tags/3.0.0.6.tar.gz \
+    && tar -zxf  3.0.0.6.tar.gz \
+    && cd CMAK-3.0.0.6 \
+    && ./sbt clean dist \
+    && mv target/universal/cmak-3.0.0.6.zip /opt/ \
+    && cd /opt && unzip cmak-3.0.0.6.zip \
+    && rm -rf CMAK-3.0.0.6 3.0.0.6.tar.gz
+
+WORKDIR /opt/cmak-3.0.0.6/
+
+CMD ["bin/cmak"]
+
+EXPOSE 8080
