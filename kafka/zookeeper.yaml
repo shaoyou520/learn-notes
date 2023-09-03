@@ -46,7 +46,7 @@ spec:
     matchLabels:
       app: zk
   serviceName: zk-hs
-  replicas: 3
+  replicas: 1
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: OrderedReady
@@ -68,7 +68,7 @@ spec:
       containers:
       - name: kubernetes-zookeeper
         imagePullPolicy: Always
-        image: "registry.k8s.io/kubernetes-zookeeper:1.0-3.4.10"
+        image: "tonybian/kubernetes-zookeeper"
         resources:
           requests:
             memory: "1Gi"
@@ -120,14 +120,10 @@ spec:
         volumeMounts:
         - name: datadir
           mountPath: /var/lib/zookeeper
+      volumes:
+        - name: datadir
+          hostPath:
+            path: /opt/zookepper/data
       securityContext:
         runAsUser: 1000
         fsGroup: 1000
-  volumeClaimTemplates:
-  - metadata:
-      name: datadir
-    spec:
-      accessModes: [ "ReadWriteOnce" ]
-      resources:
-        requests:
-          storage: 10Gi

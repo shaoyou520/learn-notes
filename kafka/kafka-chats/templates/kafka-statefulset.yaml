@@ -25,18 +25,16 @@ spec:
               readOnly: true
           ports:
             - name: ui
-              containerPort: 9000
+              containerPort: 9092
               protocol: TCP
           livenessProbe:
-            httpGet:
-              path: /
-              port: ui
+            tcpSocket:
+              port: 9092
             initialDelaySeconds: 100
             timeoutSeconds: 5
           readinessProbe:
-            httpGet:
-              path: /
-              port: ui
+            tcpSocket:
+              port: 9092
             initialDelaySeconds: 100
             timeoutSeconds: 5
 
