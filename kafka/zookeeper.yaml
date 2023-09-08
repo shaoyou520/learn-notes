@@ -37,6 +37,40 @@ spec:
       app: zk
   maxUnavailable: 1
 ---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: zk-cm
+  labels:
+    app: zk
+data:
+  zoo.cfg: |+
+    tickTime=2000
+    dataDir=/opt/zookeeper/data/
+    clientPort=2181
+    initLimit=5
+    syncLimit=2
+
+  start.sh: |+
+    #!/bin/bash
+    set -e
+    HOSTNAME="$(hostname -s)"
+    if [[ $HOSTNAME =~ (.*)-([0-9]+)$ ]]; then
+      ORD=${BASH_REMATCH[2]}
+      echo "$((ORD + 1 ))" > /opt/zookeeper/data/myid
+      export ZOO_SERVER_ID="$((ORD + 1 ))"
+    else
+      echo "Failed to get index from hostname $HOSTNAME"
+      exit 1
+    fi
+
+    for i in {1..${REPLICA_COUNT}};
+      do echo "server."${ZOO_SERVER_ID}"="${POD_NAME}"-"${i}"."${SVC_NAME}"."${NAMESPACE}".svc.cluster.local:2888:3888" >> /opt/zookeeper/conf/zoo.cfg;
+    done
+
+    /opt/zookeeper/bin/zkServer.sh start-foreground
+
+---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
@@ -46,7 +80,7 @@ spec:
     matchLabels:
       app: zk
   serviceName: zk-hs
-  replicas: 1
+  replicas: 3
   updateStrategy:
     type: RollingUpdate
   podManagementPolicy: OrderedReady
@@ -55,6 +89,10 @@ spec:
       labels:
         app: zk
     spec:
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -67,40 +105,26 @@ spec:
               topologyKey: "kubernetes.io/hostname"
       containers:
       - name: kubernetes-zookeeper
-        imagePullPolicy: Always
-        image: "tonybian/kubernetes-zookeeper"
+        imagePullPolicy: IfNotPresent
+        image: "qtdocker/zookeeper:3.9.0"
+        command: ["/bin/bash", "-c", "/opt/start.sh"]
+        env:
+        - name: REPLICA_COUNT
+          value: "3"
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: SVC_NAME
+          value: "zk-cs"
+        - name: NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
         resources:
           requests:
             memory: "1Gi"
             cpu: "0.5"
-        ports:
-        - containerPort: 2181
-          name: client
-        - containerPort: 2888
-          name: server
-        - containerPort: 3888
-          name: leader-election
-        command:
-        - sh
-        - -c
-        - "start-zookeeper \
-          --servers=3 \
-          --data_dir=/var/lib/zookeeper/data \
-          --data_log_dir=/var/lib/zookeeper/data/log \
-          --conf_dir=/opt/zookeeper/conf \
-          --client_port=2181 \
-          --election_port=3888 \
-          --server_port=2888 \
-          --tick_time=2000 \
-          --init_limit=10 \
-          --sync_limit=5 \
-          --heap=512M \
-          --max_client_cnxns=60 \
-          --snap_retain_count=3 \
-          --purge_interval=12 \
-          --max_session_timeout=40000 \
-          --min_session_timeout=4000 \
-          --log_level=INFO"
         readinessProbe:
           exec:
             command:
@@ -119,11 +143,23 @@ spec:
           timeoutSeconds: 5
         volumeMounts:
         - name: datadir
-          mountPath: /var/lib/zookeeper
+          mountPath: /opt/zookeeper/data
+        - name: start-sh
+          mountPath: /opt/start.sh
+          subPath: start.sh
+        - name: zoo-config
+          mountPath: /opt/zookeeper/conf/zoo.cfg
+          subPath: zoo.cfg
+          readOnly: false
       volumes:
         - name: datadir
           hostPath:
             path: /opt/zookepper/data
-      securityContext:
-        runAsUser: 1000
-        fsGroup: 1000
+        - name: start-sh
+          configMap:
+            name: zk-cm
+            defaultMode: 511
+        - name: zoo-config
+          configMap:
+            name: zk-cm
+            defaultMode: 511
