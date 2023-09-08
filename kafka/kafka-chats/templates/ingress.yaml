@@ -12,24 +12,17 @@ spec:
             path: "/"
             backend:
               service:
-                name: blog-web-svc
+                name: {{ include "kafka-chats.fullname" . }}-cmak
                 port:
-                  number: 80
+                  number: 9000
     - host: kafka.shaoyou.store
       http:
         paths:
           - pathType: Prefix
-            path: "/blog"
+            path: "/"
             backend:
               service:
-                name: blog-service-svc
+                name: {{ include "kafka-chats.fullname" . }}
                 port:
-                  number: 9090
-          - pathType: Prefix
-            path: "/images"
-            backend:
-              service:
-                name: blog-service-svc
-                port:
-                  number: 8088
+                  number: 9092
 
