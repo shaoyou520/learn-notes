@@ -382,7 +382,7 @@
 
 <property>
   <name>zeppelin.interpreter.dep.mvnRepo</name>
-  <value>https://repo1.maven.org/maven2/</value>
+  <value>http://repo.huaweicloud.com/repository/maven/</value>
   <description>Remote principal repository for interpreter's additional dependency loading</description>
 </property>
 
@@ -689,13 +689,13 @@
 </property>
 -->
 
-<!--
 <property>
   <name>zeppelin.recovery.storage.class</name>
   <value>org.apache.zeppelin.interpreter.recovery.LocalRecoveryStorage</value>
   <description>ReoveryStorage implementation based on java native local file system</description>
 </property>
 
+<!--
 <property>
   <name>zeppelin.recovery.storage.class</name>
   <value>org.apache.zeppelin.interpreter.recovery.FileSystemRecoveryStorage</value>
@@ -703,13 +703,11 @@
 </property>
 -->
 
-<!--
 <property>
   <name>zeppelin.recovery.dir</name>
   <value>recovery</value>
   <description>Location where recovery metadata is stored</description>
 </property>
--->
 
 <!-- GitHub configurations
 <property>

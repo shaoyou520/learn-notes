@@ -139,3 +139,22 @@ spec:
           configMap:
             name: zk-cm
             defaultMode: 511
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zk-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: zk.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: zk-cs
+                port:
+                  number: 2181
