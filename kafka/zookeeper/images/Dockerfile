@@ -8,11 +8,9 @@ RUN sed -i -e "s|mirrorlist=|#mirrorlist=|g" /etc/yum.repos.d/CentOS-* \
 RUN cd /opt && mkdir zookeeper \
     && wget https://dlcdn.apache.org/zookeeper/zookeeper-3.9.0/apache-zookeeper-3.9.0-bin.tar.gz \
     && tar -zxf apache-zookeeper-3.9.0-bin.tar.gz \
-    && rm -f apache-zookeeper-3.9.0-bin.tar.gz
-
-
-RUN mv /opt/apache-zookeeper-3.9.0-bin/* /opt/zookeeper && rm -rf /opt/apache-zookeeper-3.9.0-bin
-
-
+    && rm -f apache-zookeeper-3.9.0-bin.tar.gz \
+    && mv /opt/apache-zookeeper-3.9.0-bin/* /opt/zookeeper \
+    && rm -rf /opt/apache-zookeeper-3.9.0-bin \
+    && chown root:root /opt -R
 
 CMD ["/opt/zookeeper/bin/zkServer.sh", "start-foreground"]

@@ -50,6 +50,9 @@ data:
     clientPort=2181
     initLimit=5
     syncLimit=2
+    server.1=zk-0.zk-hs.default.svc.cluster.local:2888:3888
+    server.2=zk-1.zk-hs.default.svc.cluster.local:2888:3888
+    server.3=zk-2.zk-hs.default.svc.cluster.local:2888:3888
 
   start.sh: |+
     #!/bin/bash
@@ -63,10 +66,6 @@ data:
       echo "Failed to get index from hostname $HOSTNAME"
       exit 1
     fi
-
-    for i in {1..${REPLICA_COUNT}};
-      do echo "server."${ZOO_SERVER_ID}"="${POD_NAME}"-"${i}"."${SVC_NAME}"."${NAMESPACE}".svc.cluster.local:2888:3888" >> /opt/zookeeper/conf/zoo.cfg;
-    done
 
     /opt/zookeeper/bin/zkServer.sh start-foreground
 
@@ -89,10 +88,6 @@ spec:
       labels:
         app: zk
     spec:
-      securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
-        fsGroup: 1000
       affinity:
         podAntiAffinity:
           requiredDuringSchedulingIgnoredDuringExecution:
@@ -108,37 +103,18 @@ spec:
         imagePullPolicy: IfNotPresent
         image: "qtdocker/zookeeper:3.9.0"
         command: ["/bin/bash", "-c", "/opt/start.sh"]
-        env:
-        - name: REPLICA_COUNT
-          value: "3"
-        - name: POD_NAME
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.name
-        - name: SVC_NAME
-          value: "zk-cs"
-        - name: NAMESPACE
-          valueFrom:
-            fieldRef:
-              fieldPath: metadata.namespace
         resources:
           requests:
             memory: "1Gi"
             cpu: "0.5"
         readinessProbe:
-          exec:
-            command:
-            - sh
-            - -c
-            - "zookeeper-ready 2181"
+          tcpSocket:
+            port: 2181
           initialDelaySeconds: 10
           timeoutSeconds: 5
         livenessProbe:
-          exec:
-            command:
-            - sh
-            - -c
-            - "zookeeper-ready 2181"
+          tcpSocket:
+            port: 2181
           initialDelaySeconds: 10
           timeoutSeconds: 5
         volumeMounts:
