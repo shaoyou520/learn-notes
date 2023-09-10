@@ -132,36 +132,28 @@ spec:
       #根据 NodeName 调度
       containers:
       - name: canal
-        image: canal/canal-server:v1.1.1
+        image: qtdocker/canal:1.1.6
         imagePullPolicy: IfNotPresent
-        ports:
-        - containerPort: 3306
-        env:
-        - name: ALLOW_EMPTY_PASSWORD
-          value: "yes"
-        - name: MYSQL_ROOT_USER
-          value: root
-        - name: MYSQL_ROOT_PASSWORD
-          value: Mrtoo902li
-        - name: MYSQL_CHARACTER_SET
-          value: utf8
-        - name: MYSQL_COLLATE
-          value: utf8_general_ci
-        - name: MYSQL_DATABASE
-          value: face_privatization
         volumeMounts:
-        - name: mysql
-          mountPath: /var/lib/mysql
-        - name: mysqld-cnf
-          mountPath: /etc/mysql/mysql.conf.d/mysqld.cnf
+        - name: application-yml
+          mountPath: /opt/canal-admin/conf/application.yml
+          subPath: application.yml
+        - name: canal-properties
+          mountPath: /opt/canal/conf/canal.properties
+          subPath: canal.properties
+        - name: instance-properties
+          mountPath: /opt/canal/conf/example/instance.properties
           subPath: mysqld.cnf
       volumes:
-        - name: mysql
-          hostPath:
-            path: /root/test/data2/mysql
-        - name: mysqld-cnf
+        - name: application-yml
           configMap:
-            name: mysql
+            name: canal
+        - name: canal-properties
+          configMap:
+            name: canal
+        - name: instance-properties
+          configMap:
+            name: canal
       restartPolicy: Always
 
 ---
@@ -172,12 +164,39 @@ metadata:
   labels:
     app: canal
 spec:
-  type: NodePort
   ports:
-  - port: 3306
-    protocol: TCP
-    targetPort: 3306
-    name: http
-    nodePort: 32306
+  - port: 11111
+    targetPort: 11111
+  - port: 8089
+    targetPort: 8089
   selector:
     app: canal
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: canal
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: canal.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: canal
+                port:
+                  number: 11111
+    - host: canal.admin.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: canal
+                port:
+                  number: 8089
