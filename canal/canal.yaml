@@ -55,7 +55,7 @@ data:
 
     canal.serverMode = kafka
     # kafka服务端地址
-    kafka.bootstrap.servers = 127.0.0.1:9092
+    kafka.bootstrap.servers = my-kafka-kafka-chats:9092
     # kafka为ProducerConfig.ACKS_CONFIG
     kafka.acks = all
     #压缩类型
