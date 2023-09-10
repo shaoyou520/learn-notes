@@ -1,3 +1,29 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mysql
+  labels:
+    app: mysql
+data:
+  mysqld.cnf: |+
+    [mysqld]
+    pid-file        = /var/run/mysqld/mysqld.pid
+    socket          = /var/run/mysqld/mysqld.sock
+    datadir         = /var/lib/mysql
+    #log-error      = /var/log/mysql/error.log
+    # By default we only accept connections from localhost
+    #bind-address   = 127.0.0.1
+    # Disabling symbolic-links is recommended to prevent assorted security risks
+    symbolic-links=0
+    # 开启 binlog
+    log-bin=mysql-bin
+    # 选择 ROW 模式
+    binlog-format=ROW
+    # 配置 MySQL replaction 需要定义，不要和 canal 的 slaveId 重复
+    server_id=1
+
+---
+
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -6,11 +32,11 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      app1: mysql
+      app: mysql
   template:
     metadata:
       labels:
-        app1: mysql
+        app: mysql
     spec:
       #添加标签调度
       #nodeSelector:
@@ -40,13 +66,17 @@ spec:
         volumeMounts:
         - name: mysql
           mountPath: /var/lib/mysql
+        - name: mysqld-cnf
+          mountPath: /etc/mysql/mysql.conf.d/mysqld.cnf
+          subPath: mysqld.cnf
       volumes:
         - name: mysql
           hostPath:
             path: /root/test/data2/mysql
+        - name: mysqld-cnf
+          configMap:
+            name: mysql
       restartPolicy: Always
-
-
 
 ---
 apiVersion: v1
@@ -54,7 +84,7 @@ kind: Service
 metadata:
   name: mysql-svc
   labels:
-    app1: mysql
+    app: mysql
 spec:
   type: NodePort
   ports:
@@ -64,4 +94,4 @@ spec:
     name: http
     nodePort: 32306
   selector:
-    app1: mysql
+    app: mysql
