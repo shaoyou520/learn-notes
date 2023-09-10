@@ -1,0 +1,183 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canal
+  labels:
+    app: canal
+data:
+  application.yml: |+
+    server:
+      port: 8089
+    spring:
+      jackson:
+        date-format: yyyy-MM-dd HH:mm:ss
+        time-zone: GMT+8
+
+    spring.datasource:
+      address: mysql-svc:3306
+      database: canal_manager
+      username: canal
+      password: canal
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://${spring.datasource.address}/${spring.datasource.database}?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      hikari:
+        maximum-pool-size: 30
+        minimum-idle: 1
+
+    canal:
+      adminUser: admin
+      adminPasswd: admin
+
+  canal.properties: |+
+    # register ip
+    canal.register.ip =
+
+    # canal admin config
+    canal.admin.manager = 127.0.0.1:8089
+    canal.admin.port = 11110
+    canal.admin.user = admin
+    canal.admin.passwd = 4ACFE3202A5FF5CF467898FC58AAB1D615029441
+    # admin auto register
+    canal.admin.register.auto = true
+    canal.admin.register.cluster =
+
+    canal.conf.dir = ../conf
+    # 当前server上部署的instance列表
+    # canal.destinations
+    # 开启instance自动扫描
+          #如果配置为true，canal.conf.dir目录下的instance配置变化会自动触发：
+          #a. instance目录新增： 触发instance配置载入，lazy为true时则自动启动
+          #b. instance目录删除：卸载对应instance配置，如已启动则进行关闭
+          #c. instance.properties文件变化：reload instance配置，如已启动自动进行重启操作
+    canal.auto.scan = true
+    # instance自动扫描的间隔时间，单位秒
+    canal.auto.scan.interval = 5
+
+    canal.serverMode = kafka
+    # kafka服务端地址
+    kafka.bootstrap.servers = 127.0.0.1:9092
+    # kafka为ProducerConfig.ACKS_CONFIG
+    kafka.acks = all
+    #压缩类型
+    kafka.compression.type = none
+    # kafka为ProducerConfig.BATCH_SIZE_CONFIG
+    kafka.batch.size = 16384
+    # kafka为ProducerConfig.LINGER_MS_CONFIG , 如果是flatMessage格式建议将该值调大, 如: 200
+    kafka.linger.ms = 1
+    #kafka为ProducerConfig.MAX_REQUEST_SIZE_CONFIG
+    kafka.max.request.size = 1048576
+    #kafka为ProducerConfig.BUFFER_MEMORY_CONFIG
+    kafka.buffer.memory = 33554432
+    #kafka为ProducerConfig.MAX_IN_FLIGHT_REQUESTS_PER_CONNECTION
+    kafka.max.in.flight.requests.per.connection = 1
+    #	发送失败重试次数
+    kafka.retries = 0
+    #kerberos认证
+    kafka.kerberos.enable = false
+    # kerberos认证
+    kafka.kerberos.krb5.file = ../conf/kerberos/krb5.conf
+    # kerberos认证
+    kafka.kerberos.jaas.file = ../conf/kerberos/jaas.conf
+
+
+    # Canal的batch size, 默认50K, 由于kafka最大消息体限制请勿超过1M(900K以下)
+    canal.mq.canalBatchSize = 50
+    # Canal get数据的超时时间, 单位: 毫秒, 空为不限超时
+    canal.mq.canalGetTimeout = 100
+    # 是否为flat json格式对象
+    canal.mq.flatMessage = false
+
+
+  instance.properties: |+
+    #  按需修改成自己的数据库信息
+    #################################################
+    ...
+    canal.instance.master.address=192.168.1.20:3306
+    # username/password,数据库的用户名和密码
+    ...
+    canal.instance.dbUsername = canal
+    canal.instance.dbPassword = canal
+    ...
+    # mq config
+    canal.mq.topic=example
+    # 针对库名或者表名发送动态topic
+    #canal.mq.dynamicTopic=mytest,.*,mytest.user,mytest\\..*,.*\\..*
+    canal.mq.partition=0
+    # hash partition config
+    #canal.mq.partitionsNum=3
+    #库名.表名: 唯一主键，多个表之间用逗号分隔
+    #canal.mq.partitionHash=mytest.person:id,mytest.role:id
+    #################################################
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canal
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: canal
+  template:
+    metadata:
+      labels:
+        app: canal
+    spec:
+      #添加标签调度
+      #nodeSelector:
+      #  app1: mysql
+      
+      #根据 NodeName 调度
+      containers:
+      - name: canal
+        image: canal/canal-server:v1.1.1
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3306
+        env:
+        - name: ALLOW_EMPTY_PASSWORD
+          value: "yes"
+        - name: MYSQL_ROOT_USER
+          value: root
+        - name: MYSQL_ROOT_PASSWORD
+          value: Mrtoo902li
+        - name: MYSQL_CHARACTER_SET
+          value: utf8
+        - name: MYSQL_COLLATE
+          value: utf8_general_ci
+        - name: MYSQL_DATABASE
+          value: face_privatization
+        volumeMounts:
+        - name: mysql
+          mountPath: /var/lib/mysql
+        - name: mysqld-cnf
+          mountPath: /etc/mysql/mysql.conf.d/mysqld.cnf
+          subPath: mysqld.cnf
+      volumes:
+        - name: mysql
+          hostPath:
+            path: /root/test/data2/mysql
+        - name: mysqld-cnf
+          configMap:
+            name: mysql
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canal
+  labels:
+    app: canal
+spec:
+  type: NodePort
+  ports:
+  - port: 3306
+    protocol: TCP
+    targetPort: 3306
+    name: http
+    nodePort: 32306
+  selector:
+    app: canal
