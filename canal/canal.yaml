@@ -5,6 +5,21 @@ metadata:
   labels:
     app: canal
 data:
+  start.sh: |+
+    #!/bin/bash
+    set -e
+    sh /opt/canal-admin/bin/startup.sh
+    TMP_URL=127.0.0.1:8089
+    if timeout 5m bash -c "until curl -sf $TMP_URL; do echo Waiting for $TMP_URL; sleep 5; done";
+    then
+      sh /opt/canal/bin/startup.sh local
+      sleep 10
+      tail -f /opt/canal/logs/canal/canal.log
+    else
+      echo "$0: Timeout waiting for $TMP_URL, exiting."
+      exit 1
+    fi
+
   application.yml: |+
     server:
       port: 8089
@@ -134,6 +149,7 @@ spec:
       - name: canal
         image: qtdocker/canal:1.1.6
         imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "/opt/start.sh"]
         volumeMounts:
         - name: application-yml
           mountPath: /opt/canal-admin/conf/application.yml
@@ -143,9 +159,15 @@ spec:
           subPath: canal.properties
         - name: instance-properties
           mountPath: /opt/canal/conf/example/instance.properties
-          subPath: mysqld.cnf
+          subPath: instance.properties
+        - name: start-sh
+          mountPath: /opt/start.sh
+          subPath: start.sh
       volumes:
         - name: application-yml
+          configMap:
+            name: canal
+        - name: start-sh
           configMap:
             name: canal
         - name: canal-properties
@@ -166,8 +188,10 @@ metadata:
 spec:
   ports:
   - port: 11111
+    name: canal
     targetPort: 11111
   - port: 8089
+    name: canal-admin
     targetPort: 8089
   selector:
     app: canal
