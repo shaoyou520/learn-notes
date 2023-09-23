@@ -1,0 +1,100 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: canal-admin
+  labels:
+    app: canal-admin
+data:
+  application.yml: |+
+    server:
+      port: 8089
+    spring:
+      jackson:
+        date-format: yyyy-MM-dd HH:mm:ss
+        time-zone: GMT+8
+
+    spring.datasource:
+      address: mysql-svc:3306
+      database: canal_manager
+      username: canal
+      password: canal
+      driver-class-name: com.mysql.jdbc.Driver
+      url: jdbc:mysql://${spring.datasource.address}/${spring.datasource.database}?useUnicode=true&characterEncoding=UTF-8&useSSL=false
+      hikari:
+        maximum-pool-size: 30
+        minimum-idle: 1
+
+    canal:
+      adminUser: admin
+      adminPasswd: admin
+
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: canal-admin
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: canal-admin
+  template:
+    metadata:
+      labels:
+        app: canal-admin
+    spec:
+      #添加标签调度
+      #nodeSelector:
+      #  app1: mysql
+      
+      #根据 NodeName 调度
+      containers:
+      - name: canal-admin
+        image: qtdocker/canal-admin:1.1.6
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/sh", "-c", "/opt/canal-admin/bin/startup.sh && touch /opt/canal-admin/logs/admin.log && tail -f /opt/canal-admin/logs/admin.log"]
+        volumeMounts:
+        - name: application-yml
+          mountPath: /opt/canal-admin/conf/application.yml
+          subPath: application.yml
+      volumes:
+        - name: application-yml
+          configMap:
+            name: canal-admin
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: canal-admin
+  labels:
+    app: canal-admin
+spec:
+  ports:
+  - port: 8089
+    name: canal-admin
+    targetPort: 8089
+  selector:
+    app: canal-admin
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: canal-admin
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: canal.admin.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: canal-admin
+                port:
+                  number: 8089

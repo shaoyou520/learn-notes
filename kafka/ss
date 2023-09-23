@@ -1,0 +1,5 @@
+/usr/local/kafka/bin/kafka-console-producer.sh --topic test --bootstrap-server localhost:9092
+
+
+/usr/local/kafka/bin/kafka-console-consumer.sh --topic test --from-beginning --bootstrap-server localhost:9092
+

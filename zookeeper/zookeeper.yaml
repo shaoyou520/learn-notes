@@ -57,14 +57,17 @@ data:
   start.sh: |+
     #!/bin/bash
     set -e
-    HOSTNAME="$(hostname -s)"
-    if [[ $HOSTNAME =~ (.*)-([0-9]+)$ ]]; then
-      ORD=${BASH_REMATCH[2]}
-      echo "$((ORD + 1 ))" > /opt/zookeeper/data/myid
-      export ZOO_SERVER_ID="$((ORD + 1 ))"
-    else
-      echo "Failed to get index from hostname $HOSTNAME"
-      exit 1
+
+    if [ ! -f "/opt/zookeeper/data/myid" ]; then
+      HOSTNAME="$(hostname -s)"
+      if [[ $HOSTNAME =~ (.*)-([0-9]+)$ ]]; then
+        ORD=${BASH_REMATCH[2]}
+        echo "$((ORD + 1 ))" > /opt/zookeeper/data/myid
+        export ZOO_SERVER_ID="$((ORD + 1 ))"
+      else
+        echo "Failed to get index from hostname $HOSTNAME"
+        exit 1
+      fi
     fi
 
     /opt/zookeeper/bin/zkServer.sh start-foreground
@@ -115,7 +118,7 @@ spec:
         livenessProbe:
           tcpSocket:
             port: 2181
-          initialDelaySeconds: 10
+          initialDelaySeconds: 100
           timeoutSeconds: 5
         volumeMounts:
         - name: datadir

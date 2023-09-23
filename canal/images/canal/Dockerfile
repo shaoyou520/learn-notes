@@ -9,8 +9,4 @@ RUN sed -i -e "s|mirrorlist=|#mirrorlist=|g" /etc/yum.repos.d/CentOS-* \
 
 RUN wget https://github.com/alibaba/canal/releases/download/canal-$version/canal.deployer-$version.tar.gz \
     && mkdir /opt/canal && tar -zxf canal.deployer-$version.tar.gz  -C /opt/canal \
-    && rm -f canal.deployer-$version.tar.gz \
-    && wget https://github.com/alibaba/canal/releases/download/canal-$version/canal.admin-$version.tar.gz \
-    && mkdir /opt/canal-admin \
-    && tar -zxf canal.admin-$version.tar.gz  -C /opt/canal-admin \
-    && rm -f canal.admin-$version.tar.gz
+    && rm -f canal.deployer-$version.tar.gz
