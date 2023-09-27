@@ -18,10 +18,15 @@ spec:
         - name: kafka
           image: qtdocker/kafka:3.5.1_2.12
           imagePullPolicy: IfNotPresent
+          command: ["/bin/bash", "-c", "/script/start-kafka.sh"]
           volumeMounts:
             - name: server-properties
-              mountPath: /opt/kafka/config/server.properties
+              mountPath: /opt/server.properties
               subPath: server.properties
+              readOnly: true
+            - name: start-kafka-sh
+              mountPath: /script/start-kafka.sh
+              subPath: start-kafka.sh
               readOnly: true
           ports:
             - name: ui
@@ -37,4 +42,8 @@ spec:
         - name: server-properties
           configMap:
             name: {{ include "kafka-chats.fullname" . }}
+        - name: start-kafka-sh
+          configMap:
+            name: {{ include "kafka-chats.fullname" . }}
+            defaultMode: 511
 
