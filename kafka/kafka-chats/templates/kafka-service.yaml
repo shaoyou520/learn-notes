@@ -9,5 +9,6 @@ spec:
   ports:
     - port: 9092
       name: service
+      nodePort: 32452
   selector:
     app: {{ include "kafka-chats.fullname" . }}

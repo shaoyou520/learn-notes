@@ -20,18 +20,13 @@ spec:
           imagePullPolicy: IfNotPresent
           volumeMounts:
             - name: server-properties
-              mountPath: /usr/local/kafka/config/server.properties
+              mountPath: /opt/kafka/config/server.properties
               subPath: server.properties
               readOnly: true
           ports:
             - name: ui
               containerPort: 9092
               protocol: TCP
-          livenessProbe:
-            tcpSocket:
-              port: 9092
-            initialDelaySeconds: 100
-            timeoutSeconds: 5
           readinessProbe:
             tcpSocket:
               port: 9092

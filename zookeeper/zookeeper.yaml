@@ -21,9 +21,11 @@ metadata:
   labels:
     app: zk
 spec:
+  type: NodePort
   ports:
   - port: 2181
     name: client
+    nodePort: 32181
   selector:
     app: zk
 ---
@@ -110,11 +112,6 @@ spec:
           requests:
             memory: "1Gi"
             cpu: "0.5"
-        readinessProbe:
-          tcpSocket:
-            port: 2181
-          initialDelaySeconds: 10
-          timeoutSeconds: 5
         livenessProbe:
           tcpSocket:
             port: 2181

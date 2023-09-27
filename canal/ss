@@ -55,3 +55,7 @@ canal.mq.canalBatchSize = 50
 canal.mq.canalGetTimeout = 100
 # 是否为flat json格式对象
 canal.mq.flatMessage = false
+
+
+
+https://tableplus.com/blog/2019/10/table-performance-schema-session-status-doesnt-exist.html
