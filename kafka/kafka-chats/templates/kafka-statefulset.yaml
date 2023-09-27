@@ -19,6 +19,11 @@ spec:
           image: qtdocker/kafka:3.5.1_2.12
           imagePullPolicy: IfNotPresent
           command: ["/bin/bash", "-c", "/script/start-kafka.sh"]
+          env:
+            - name: NODE_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: spec.nodeName
           volumeMounts:
             - name: server-properties
               mountPath: /opt/server.properties

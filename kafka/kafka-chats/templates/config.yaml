@@ -13,7 +13,8 @@ data:
     HOSTNAME="$(hostname -s)"
     if [[ $HOSTNAME =~ (.*)-([0-9]+)$ ]]; then
       ORD=${BASH_REMATCH[2]}
-      sed -i 's/broker_id/'${ORD}'/g' $KAFKA_HOME/config/server.properties
+      sed -i 's/{broker_id}/'${ORD}'/g' $KAFKA_HOME/config/server.properties
+      sed -i 's/{host_name}/'${NODE_NAME}'/g' $KAFKA_HOME/config/server.properties
     else
       echo "Failed to get index from hostname $HOSTNAME"
       exit 1
@@ -44,7 +45,7 @@ data:
     ############################# Server Basics #############################
 
     # The id of the broker. This must be set to a unique integer for each broker.
-    broker.id=broker_id
+    broker.id={broker_id}
 
     ############################# Socket Server Settings #############################
 
@@ -61,8 +62,8 @@ data:
     # advertised.listeners=PLAINTEXT://{{ include "kafka-chats.fullname" . }}:9092
     listener.security.protocol.map=INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
     inter.broker.listener.name=INSIDE
-    listeners=INSIDE://{{ include "kafka-chats.fullname" . }}-broker_id:9092,OUTSIDE://{{ include "kafka-chats.fullname" . }}-broker_id:9094
-    advertised.listeners=INSIDE://{{ include "kafka-chats.fullname" . }}-broker_id:9092,OUTSIDE://node1:32452
+    listeners=INSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}:9092,OUTSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}:9094
+    advertised.listeners=INSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}:9092,OUTSIDE://{host_name}:32452
 
     # Maps listener names to security protocols, the default is for them to be the same. See the config documentation for more details
     #listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL
