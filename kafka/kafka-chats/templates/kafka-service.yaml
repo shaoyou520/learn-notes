@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "kafka-chats.fullname" . }}
+  name: {{ include "kafka-chats.fullname" . }}-out
   labels:
     app: {{ include "kafka-chats.fullname" . }}
 spec:
@@ -10,5 +10,17 @@ spec:
     - port: 9094
       name: service
       nodePort: 32452
+  selector:
+    app: {{ include "kafka-chats.fullname" . }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kafka-chats.fullname" . }}
+  labels:
+    app: {{ include "kafka-chats.fullname" . }}
+spec:
+  clusterIP: None
   selector:
     app: {{ include "kafka-chats.fullname" . }}

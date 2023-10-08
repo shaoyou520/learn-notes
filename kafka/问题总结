@@ -8,3 +8,10 @@ $KAFKA_HOME/bin/kafka-console-consumer.sh --topic test --from-beginning --bootst
 问题：
 org.apache.kafka.common.errors.TimeoutException: Expiring 1 record(s) for test-0:
 30019 ms has passed since last append
+
+
+kubectl logs --tail=20
+
+问题：
+StatefulSet 的pod 通过域名 无法ping通：
+-- StatefulSet摸板中指定serviceName

@@ -62,8 +62,8 @@ data:
     # advertised.listeners=PLAINTEXT://{{ include "kafka-chats.fullname" . }}:9092
     listener.security.protocol.map=INSIDE:PLAINTEXT,OUTSIDE:PLAINTEXT
     inter.broker.listener.name=INSIDE
-    listeners=INSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}:9092,OUTSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}:9094
-    advertised.listeners=INSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}:9092,OUTSIDE://{host_name}:32452
+    listeners=INSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}.{{ include "kafka-chats.fullname" . }}.default.svc.cluster.local:9092,OUTSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}.{{ include "kafka-chats.fullname" . }}.default.svc.cluster.local:9094
+    advertised.listeners=INSIDE://{{ include "kafka-chats.fullname" . }}-{broker_id}.{{ include "kafka-chats.fullname" . }}.default.svc.cluster.local:9092,OUTSIDE://{host_name}:32452
 
     # Maps listener names to security protocols, the default is for them to be the same. See the config documentation for more details
     #listener.security.protocol.map=PLAINTEXT:PLAINTEXT,SSL:SSL,SASL_PLAINTEXT:SASL_PLAINTEXT,SASL_SSL:SASL_SSL

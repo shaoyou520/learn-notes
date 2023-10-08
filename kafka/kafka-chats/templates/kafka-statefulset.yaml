@@ -5,6 +5,7 @@ metadata:
   labels:
     app: {{ include "kafka-chats.fullname" . }}
 spec:
+  serviceName: {{ include "kafka-chats.fullname" . }}
   replicas: 1
   selector:
     matchLabels:
@@ -37,11 +38,6 @@ spec:
             - name: ui
               containerPort: 9092
               protocol: TCP
-          readinessProbe:
-            tcpSocket:
-              port: 9092
-            initialDelaySeconds: 100
-            timeoutSeconds: 5
 
       volumes:
         - name: server-properties
