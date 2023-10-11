@@ -3,7 +3,7 @@
 $KAFKA_HOME/bin/kafka-console-producer.sh --topic test --bootstrap-server localhost:9092
 
 
-$KAFKA_HOME/bin/kafka-console-consumer.sh --topic test --from-beginning --bootstrap-server localhost:9092
+$KAFKA_HOME/bin/kafka-console-consumer.sh --topic test --from-beginning --bootstrap-server my-kafka-chats-0.my-kafka-chats.default.svc.cluster.local:9092
 
 问题：
 org.apache.kafka.common.errors.TimeoutException: Expiring 1 record(s) for test-0:
