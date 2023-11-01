@@ -1,0 +1,188 @@
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: es-svc
+  labels:
+    app: es
+spec:
+  type: NodePort
+  ports:
+  - port: 2181
+    name: client
+    nodePort: 32181
+  selector:
+    app: es
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: es-cm
+  labels:
+    app: es
+data:
+  elasticsearch.yml: |+
+    # ======================== Elasticsearch Configuration =========================
+    cluster.name: my-application
+    node.name: node-1
+    #
+    # Add custom attributes to the node:
+    #
+    #node.attr.rack: r1
+    path.data: /opt/elasticsearch-8.10.4/data
+    path.logs: /opt/elasticsearch-8.10.4/logs
+    #
+    # ----------------------------------- Memory -----------------------------------
+    #
+    # Lock the memory on startup:
+    #
+    #bootstrap.memory_lock: true
+    network.host: 0.0.0.0
+    http.port: 9200
+    #
+    # For more information, consult the network module documentation.
+    #
+    # --------------------------------- Discovery ----------------------------------
+    #
+    # Pass an initial list of hosts to perform discovery when this node is started:
+    # The default list of hosts is ["127.0.0.1", "[::1]"]
+    #
+    discovery.seed_hosts: ["es-0.es-svc.default.svc.cluster.local", "es-1.es-svc.default.svc.cluster.local", "es-2.es-svc.default.svc.cluster.local"]
+    #
+    # Bootstrap the cluster using an initial set of master-eligible nodes:
+    #
+    cluster.initial_master_nodes: ["es-0", "es-1", "es-2"]
+    #
+    # For more information, consult the discovery and cluster formation module documentation.
+    #
+    # ---------------------------------- Various -----------------------------------
+    #
+    # Allow wildcard deletion of indices:
+    #
+    #action.destructive_requires_name: false
+
+    #----------------------- BEGIN SECURITY AUTO CONFIGURATION -----------------------
+    #
+    # The following settings, TLS certificates, and keys have been automatically
+    # generated to configure Elasticsearch security features on 01-11-2023 12:30:07
+    #
+    # --------------------------------------------------------------------------------
+
+    # Enable security features
+    xpack.security.enabled: true
+
+    xpack.security.enrollment.enabled: true
+
+    # Enable encryption for HTTP API client connections, such as Kibana, Logstash, and Agents
+    xpack.security.http.ssl:
+      enabled: true
+      keystore.path: certs/http.p12
+
+    # Enable encryption and mutual authentication between cluster nodes
+    xpack.security.transport.ssl:
+      enabled: true
+      verification_mode: certificate
+      keystore.path: certs/transport.p12
+      truststore.path: certs/transport.p12
+    # Create a new cluster with the current node only
+    # Additional nodes can still join the cluster later
+    #cluster.initial_master_nodes: ["0bf90f93bbd4"]
+
+    # Allow HTTP API connections from anywhere
+    # Connections are encrypted and require user authentication
+    http.host: 0.0.0.0
+
+    # Allow other nodes to join the cluster from anywhere
+    # Connections are encrypted and mutually authenticated
+    transport.host: 0.0.0.0
+    # 设置集群节点通信的TCP端口，默认是9300
+    transport.tcp.port: 9300
+
+    #----------------------- END SECURITY AUTO CONFIGURATION -------------------------
+
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: es
+spec:
+  selector:
+    matchLabels:
+      app: es
+  serviceName: es-svc
+  replicas: 3
+  updateStrategy:
+    type: RollingUpdate
+  podManagementPolicy: OrderedReady
+  template:
+    metadata:
+      labels:
+        app: es
+    spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            - labelSelector:
+                matchExpressions:
+                  - key: "app"
+                    operator: In
+                    values:
+                    - es
+              topologyKey: "kubernetes.io/hostname"
+      containers:
+      - name: kubernetes-es
+        imagePullPolicy: IfNotPresent
+        image: "qtdocker/es:8.10.4"
+        # command: ["/bin/bash", "-c", "/opt/start.sh"]
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "0.5"
+        livenessProbe:
+          tcpSocket:
+            port: 2181
+          initialDelaySeconds: 100
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: datadir
+          mountPath: /opt/zookeeper/data
+        - name: start-sh
+          mountPath: /opt/start.sh
+          subPath: start.sh
+        - name: zoo-config
+          mountPath: /opt/zookeeper/conf/zoo.cfg
+          subPath: zoo.cfg
+          readOnly: false
+      volumes:
+        - name: datadir
+          hostPath:
+            path: /opt/zookepper/data
+        - name: start-sh
+          configMap:
+            name: zk-cm
+            defaultMode: 511
+        - name: zoo-config
+          configMap:
+            name: zk-cm
+            defaultMode: 511
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zk-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: zk.shaoyou.store
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: zk-cs
+                port:
+                  number: 2181
