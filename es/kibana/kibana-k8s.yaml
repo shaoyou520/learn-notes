@@ -9,9 +9,9 @@ metadata:
 spec:
   type: NodePort
   ports:
-  - port: 2181
+  - port: 5601
     name: client
-    nodePort: 32181
+    nodePort: 30561
   selector:
     app: kibana
 ---
@@ -202,8 +202,6 @@ spec:
     matchLabels:
       app: kibana
   replicas: 1
-  updateStrategy:
-    type: RollingUpdate
   template:
     metadata:
       labels:
@@ -213,38 +211,24 @@ spec:
       - name: kubernetes-kibana
         imagePullPolicy: IfNotPresent
         image: "qtdocker/kibana:8.10.4"
-        # command: ["/bin/bash", "-c", "/opt/start.sh"]
+        command: ["/bin/bash", "-c", "/opt/kibana-8.10.4/bin/kibana"]
         resources:
           requests:
             memory: "1Gi"
             cpu: "0.5"
         livenessProbe:
           tcpSocket:
-            port: 2181
+            port: 5601
           initialDelaySeconds: 100
           timeoutSeconds: 5
         volumeMounts:
-        - name: datadir
-          mountPath: /opt/zookeeper/data
-        - name: start-sh
-          mountPath: /opt/start.sh
-          subPath: start.sh
-        - name: zoo-config
-          mountPath: /opt/zookeeper/conf/zoo.cfg
-          subPath: zoo.cfg
-          readOnly: false
+        - name: kibana-yml
+          mountPath: /opt/kibana-8.10.4/config/kibana.yml
+          subPath: kibana.yml
       volumes:
-        - name: datadir
-          hostPath:
-            path: /opt/zookepper/data
-        - name: start-sh
+        - name: kibana-yml
           configMap:
-            name: zk-cm
-            defaultMode: 511
-        - name: zoo-config
-          configMap:
-            name: zk-cm
-            defaultMode: 511
+            name: kibana-cm
 
 ---
 apiVersion: networking.k8s.io/v1
@@ -261,6 +245,6 @@ spec:
             path: "/"
             backend:
               service:
-                name: kibana-cs
+                name: kibana-svc
                 port:
                   number: 5601

@@ -9,9 +9,9 @@ metadata:
 spec:
   type: NodePort
   ports:
-  - port: 2181
+  - port: 9200
     name: client
-    nodePort: 32181
+    nodePort: 30920
   selector:
     app: es
 ---
@@ -24,8 +24,8 @@ metadata:
 data:
   elasticsearch.yml: |+
     # ======================== Elasticsearch Configuration =========================
-    cluster.name: my-application
-    node.name: node-1
+    cluster.name: my-cluster
+    node.name: ${POD_NAME}
     #
     # Add custom attributes to the node:
     #
@@ -97,7 +97,7 @@ data:
     # Connections are encrypted and mutually authenticated
     transport.host: 0.0.0.0
     # 设置集群节点通信的TCP端口，默认是9300
-    transport.tcp.port: 9300
+    transport.port: 9300
 
     #----------------------- END SECURITY AUTO CONFIGURATION -------------------------
 
@@ -135,54 +135,51 @@ spec:
       - name: kubernetes-es
         imagePullPolicy: IfNotPresent
         image: "qtdocker/es:8.10.4"
-        # command: ["/bin/bash", "-c", "/opt/start.sh"]
+        command: ["/bin/bash", "-c", "/opt/elasticsearch-8.10.4/bin/elasticsearch"]
+        env:
+        - name: POD_NAME                              #定义一个POD名称的环境变量，用于configmap调用
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
         resources:
           requests:
-            memory: "1Gi"
+            memory: "2Gi"
             cpu: "0.5"
         livenessProbe:
           tcpSocket:
-            port: 2181
-          initialDelaySeconds: 100
+            port: 9200
+          initialDelaySeconds: 1000
           timeoutSeconds: 5
         volumeMounts:
         - name: datadir
-          mountPath: /opt/zookeeper/data
-        - name: start-sh
-          mountPath: /opt/start.sh
-          subPath: start.sh
-        - name: zoo-config
-          mountPath: /opt/zookeeper/conf/zoo.cfg
-          subPath: zoo.cfg
-          readOnly: false
+          mountPath: /opt/elasticsearch-8.10.4/data
+        - name: es-config
+          mountPath: /opt/elasticsearch-8.10.4/config/elasticsearch.yml
+          subPath: elasticsearch.yml
       volumes:
         - name: datadir
           hostPath:
-            path: /opt/zookepper/data
-        - name: start-sh
-          configMap:
-            name: zk-cm
+            path: /opt/es/data
             defaultMode: 511
-        - name: zoo-config
+        - name: es-config
           configMap:
-            name: zk-cm
-            defaultMode: 511
+            name: es-cm
 
 ---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: zk-ingress
+  name: es-ingress
 spec:
   ingressClassName: nginx
   rules:
-    - host: zk.shaoyou.store
+    - host: es.shaoyou.store
       http:
         paths:
           - pathType: Prefix
             path: "/"
             backend:
               service:
-                name: zk-cs
+                name: es-cs
                 port:
-                  number: 2181
+                  number: 9200

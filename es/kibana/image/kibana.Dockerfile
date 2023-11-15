@@ -9,5 +9,8 @@ RUN cd /opt &&\
     tar -xzf kibana-8.10.4-linux-x86_64.tar.gz &&\
     rm -f kibana-8.10.4-linux-x86_64.tar.gz
 
+RUN adduser kibana && chown kibana -R /opt/kibana-8.10.4/
+
+USER kibana
 
 CMD ['/opt/kibana-8.10.4/bin/kibana']
