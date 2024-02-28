@@ -2,6 +2,21 @@
 vi /etc/hostname
 reboot
 
+添加虚拟网卡：
+vim /etc/sysconfig/network-scripts/ifcfg-eth0:1
+
+# 填入内容
+NAME=eth0:1
+DEVICE=eth0:1
+TYPE=Ethernet
+ONBOOT=yes
+BOOTPROTO=static
+NETMASK=255.255.255.0
+IPADDR=<public ip>
+
+# 重启网络
+systemctl restart network.service
+
 关闭SELINUX：
 setenforce 0
 sed -ri 's/SELINUX=enforcing/SELINUX=disabled/' /etc/selinux/config
@@ -87,7 +102,7 @@ master:
 wget https://github.com/kubernetes-sigs/etcdadm/releases/download/v0.1.5/etcdadm-linux-amd64 --no-check-certificate
 chmod +x etcdadm-linux-amd64
 mv etcdadm-linux-amd64 /usr/bin/etcdadm
-etcdadm init --name master --server-cert-extra-sans 122.51.3.28 --version 3.5.12
+etcdadm init --name master --server-cert-extra-sans 公网ip --version 3.5.12
 /opt/bin/etcdctl.sh endpoint health
 
 加载etcd环境变量
@@ -113,20 +128,35 @@ kubeadm join 122.51.3.28:6443 --token xxx \
 
 master执行 kubectl get nodes， 节点出于 NotReady， 没有安装CNI，本文使用CNI flannel
 ```
-master：
-iptables -t nat -A OUTPUT -d 10.0.0.210 -j DNAT --to-destination 182.43.15.195
-iptables -t nat -A OUTPUT -d 10.0.1.152 -j DNAT --to-destination 182.43.15.51
-iptables -t nat -A OUTPUT -d 10.0.3.54 -j DNAT --to-destination 182.43.50.112
 
-node：
-iptables -t nat -A OUTPUT -d 10.0.1.207 -j DNAT --to-destination 182.43.110.62
-```
-kubectl annotate node node flannel.alpha.coreos.com/public-ip-overwrite=122.51.3.28
-kubectl annotate node node1 flannel.alpha.coreos.com/public-ip-overwrite=49.235.155.176
-kubectl annotate node node2 flannel.alpha.coreos.com/public-ip-overwrite=122.51.186.194
-kubectl annotate node node3 flannel.alpha.coreos.com/public-ip-overwrite=111.229.214.13
+kubectl annotate node node flannel.alpha.coreos.com/public-ip-overwrite=公网ip
+kubectl annotate node node1 flannel.alpha.coreos.com/public-ip-overwrite=公网ip
+kubectl annotate node node2 flannel.alpha.coreos.com/public-ip-overwrite=公网ip
+kubectl annotate node node3 flannel.alpha.coreos.com/public-ip-overwrite=公网ip
 
 wget –no-check-certificate https://raw.githubusercontent.com/flannel-io/flannel/master/Documentation/kube-flannel.yml
+修改1： 添加 --public-ip=$(PUBLIC_IP)，--iface=eth0：
+      containers:
+      - name: kube-flannel
+        image: docker.io/flannel/flannel:v0.24.2
+        command:
+        - /opt/bin/flanneld
+        args:
+        - --public-ip=$(PUBLIC_IP)
+        - --iface=eth0
+        - --ip-masq
+        - --kube-subnet-mgr
+
+ 修改2： 添加参数PUBLIC_IP：
+        env:
+        - name: PUBLIC_IP
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
 kubectl apply -f kube-flannel.yml
 
 
