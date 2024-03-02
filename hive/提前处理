@@ -1,0 +1,3 @@
+修改hdfs 权限
+
+hadoop fs -chmod 777 /
