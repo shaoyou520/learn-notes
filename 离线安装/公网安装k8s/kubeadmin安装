@@ -91,7 +91,7 @@ EOF
 
 修改cgroups：
 #vim /etc/sysconfig/kubelet
-sed -i 's/KUBELET_EXTRA_ARGS=/KUBELET_EXTRA_ARGS="--container-runtime-endpoint=/var/run/cri-dockerd.sock --cgroup-driver=systemd"/' /etc/sysconfig/kubelet
+KUBELET_EXTRA_ARGS="--container-runtime-endpoint=/var/run/cri-dockerd.sock --cgroup-driver=systemd --node-ip=172.16.0.3"
 
 设置kubelet为开机自启动即可，由于没有生成配置文件，集群初始化后自动启动
 # systemctl enable kubelet
