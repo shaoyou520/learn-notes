@@ -7,10 +7,10 @@ metadata:
     nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
 spec:
   ingressClassName: nginx
-  tls:
-    - hosts:
-        - k8s.web.shaoyou.store
-      secretName: k8s-web-https-secret
+  #  tls:
+  #    - hosts:
+  #        - k8s.web.shaoyou.store
+  #      secretName: k8s-web-https-secret
   rules:
     - host: k8s.web.shaoyou.store
       http:

@@ -4,13 +4,13 @@ metadata:
   name: data-kafka-0
 spec:
   capacity:
-    storage: 5Gi
+    storage: 25Gi
   accessModes:
   - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: ''
   local:
-    path: /opt/kafka/data-0
+    path: /opt/k8s/data-0
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -23,16 +23,16 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: data-kafka-1
+  name: data-prometheus-1
 spec:
   capacity:
-    storage: 5Gi
+    storage: 8Gi
   accessModes:
   - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   local:
-    path: /opt/kafka/data-1
+    path: /opt/k8s/prometheus
   nodeAffinity:
     required:
       nodeSelectorTerms:
@@ -45,16 +45,16 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: data-kafka-2
+  name: data-prometheus-2
 spec:
   capacity:
-    storage: 5Gi
+    storage: 8Gi
   accessModes:
   - ReadWriteOnce
   persistentVolumeReclaimPolicy: Retain
   storageClassName: local-storage
   local:
-    path: /opt/kafka/data-2
+    path: /opt/k8s/prometheus
   nodeAffinity:
     required:
       nodeSelectorTerms:

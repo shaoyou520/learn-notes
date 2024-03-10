@@ -1,0 +1,10 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: blog-service
+spec:
+  containers:
+  - name: blog-service-app
+    image: qtdocker/python3.9.13
+    imagePullPolicy: IfNotPresent
+    command: ["/bin/bash", "-c", "sleep 2d"]

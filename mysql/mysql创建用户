@@ -1,0 +1,15 @@
+
+创建用户
+CREATE USER 'username'@'host' IDENTIFIED BY 'password';
+
+授权
+GRANT privileges ON databasename.tablename TO 'username'@'host'
+
+设置与更改用户密码
+SET PASSWORD FOR 'username'@'host' = PASSWORD('newpassword');
+
+撤销用户权限
+REVOKE privilege ON databasename.tablename FROM 'username'@'host';
+
+.删除用户
+DROP USER 'username'@'host';

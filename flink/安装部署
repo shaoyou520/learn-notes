@@ -1,0 +1,27 @@
+
+# RBAC 配置
+kubectl create clusterrolebinding flink-role-binding-default --clusterrole=edit --serviceaccount=default:default
+kubectl create serviceaccount flink-service-account
+kubectl create clusterrolebinding flink-role-binding-flink --clusterrole=edit --serviceaccount=default:flink-service-account
+
+# 创建flinnk-session
+./bin/kubernetes-session.sh \
+-Dkubernetes.cluster-id=my-first-flink-cluster \
+-Dkubernetes.rest-service.exposed.type=NodePort
+
+# 提交作业
+./bin/flink run \
+    --target kubernetes-session \
+    -Dkubernetes.cluster-id=my-first-flink-cluster \
+    ./examples/streaming/TopSpeedWindowing.jar
+
+
+./bin/flink run-application \
+    --target kubernetes-application \
+    -Dkubernetes.cluster-id=my-first-application-cluster \
+    -Dkubernetes.container.image.ref=qtdocker/qt-flink:base \
+    local://$FLINK_HOME/usrlib/WordCount.jar
+
+ ./bin/flink list --target kubernetes-application -Dkubernetes.cluster-id=my-first-application-cluster
+
+./bin/flink cancel --target kubernetes-application -Dkubernetes.cluster-id=my-first-application-cluster <jobId>

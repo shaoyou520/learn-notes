@@ -1,0 +1,24 @@
+创建数据库 ： canal_manager
+
+CREATE USER 'canal'@'%' IDENTIFIED BY 'canal';
+GRANT all ON canal_manager.* TO 'canal'@'%';
+
+canal_manager.sql 数据初始化
+
+创建 canalAdmin， 主配置 默认即可
+
+canal 创建之前， 在canalAdmin 里面创建集群：canal-cluster，
+
+创建 admin
+
+
+创建canal权限
+GRANT SELECT, REPLICATION SLAVE, REPLICATION CLIENT ON *.* TO 'canal'@'%';
+-- GRANT ALL PRIVILEGES ON *.* TO 'canal'@'%' ;
+FLUSH PRIVILEGES;
+
+
+https://xie.infoq.cn/article/0f22f69c6a25512293e4bd789
+
+
+
