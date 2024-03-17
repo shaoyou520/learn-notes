@@ -2,7 +2,7 @@ import pymysql
 import time
 
 conn = pymysql.connect(
-    host="node1", port=32306, user="syblog", password="Abcde.123", database="blog", charset="utf8"
+    host="master", port=32306, user="canal", password="canal", database="canal", charset="utf8"
 )
 
 insert_sql = "insert into test(user_name, age) values ('canal', 12)"
