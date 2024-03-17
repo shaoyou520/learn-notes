@@ -1,0 +1,6 @@
+echo "vm.max_map_count = 262144" >> /etc/sysctl.conf
+sysctl -p
+systemctl restart docker
+
+mkdir -p /opt/es/data
+chmod 777 /opt/es/data -R

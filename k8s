@@ -1,0 +1,3 @@
+kubectl patch pv es-pv-node3 -p '{"metadata":{"finalizers":null}}'
+
+

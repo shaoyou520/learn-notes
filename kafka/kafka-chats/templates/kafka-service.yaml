@@ -12,6 +12,20 @@ spec:
       nodePort: 32452
   selector:
     app: {{ include "kafka-chats.fullname" . }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kafka-chats.fullname" . }}-k8s
+  labels:
+    app: {{ include "kafka-chats.fullname" . }}
+spec:
+  type: ClusterIP
+  ports:
+    - port: 9093
+      name: service
+  selector:
+    app: {{ include "kafka-chats.fullname" . }}
 
 ---
 apiVersion: v1

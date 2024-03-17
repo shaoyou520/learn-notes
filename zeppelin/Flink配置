@@ -1,0 +1,5 @@
+
+
+org.apache.flink:flink-sql-client:1.18.1
+org.apache.flink:flink-streaming-scala_2.12:1.18.1
+org.apache.flink:flink-table-api-scala-bridge_2.12:1.18.1
