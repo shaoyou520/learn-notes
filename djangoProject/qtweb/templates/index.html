@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Side Navigation Bar</title>
+<style>
+body {
+  margin: 0;
+  font-family: Arial, sans-serif;
+}
+
+.sidenav {
+  height: 100%;
+  width: 200px;
+  position: fixed;
+  z-index: 1;
+  top: 0;
+  left: 0;
+  background-color: #111;
+  overflow-x: hidden;
+  padding: 60px 0;
+}
+
+.sidenav a {
+  padding: 8px 32px;
+  text-decoration: none;
+  font-size: 25px;
+  color: #818181;
+  display: block;
+  transition: 0.3s;
+}
+
+.sidenav a:hover {
+  color: #f1f1f1;
+}
+
+.main {
+  margin-left: 200px; /* Same as sidebar width */
+  padding: 0px 10px;
+}
+</style>
+    <script>
+function autoIframeHeight() {
+    var iframe = document.getElementById('myIframe');
+    if (iframe.contentWindow.document.body) {
+        var contentHeight = iframe.contentWindow.document.body.scrollHeight + 50;
+        iframe.height = contentHeight + 'px';
+    }
+}
+</script>
+</head>
+<body>
+
+<div class="sidenav">
+  <a href="?view=goods">商品</a>
+  <a href="?view=user">用户</a>
+  <a href="?view=order">订单</a>
+  <a href="?view=schedule">调度</a>
+</div>
+
+<div class="main">
+  <iframe id="myIframe" src={{ page }} width="100%" frameborder="0" onload="autoIframeHeight()"></iframe>
+  <p>This is a side navigation bar example for HTML.</p>
+</div>
+
+</body>
+</html>

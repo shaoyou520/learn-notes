@@ -3,7 +3,7 @@ kubectl -n kubernetes-dashboard create token admin-user
 kubectl config set-cluster kubernetes \
 --certificate-authority=/etc/kubernetes/pki/ca.crt \
 --embed-certs=true \
---server=https://182.43.110.62:6443 \
+--server=https://master:6443 \
 --kubeconfig=admin_user_kubeconfig.conf
 
 KUBEADMIN_TOKEN=$(kubectl -n kubernetes-dashboard get secrets dashboard-admin-secret -o jsonpath='{.data.token}' | base64 -d)

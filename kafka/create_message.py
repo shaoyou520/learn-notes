@@ -1,8 +1,9 @@
 from kafka import KafkaProducer
 import os
+import sys
 
 #9092:32452/TCP
-producer = KafkaProducer(bootstrap_servers=os.environ.get('KAFKA_HOST', 'node1:32452,node2:32452,node3:32452'))
+producer = KafkaProducer(bootstrap_servers=os.environ.get('KAFKA_HOST', 'kafka-kafka-chats-'+sys.argv[1]+'.kafka-kafka-chats.default.svc.cluster.local:9093'))
 print("------->>")
 for i in range(5000):
     future = producer.send('test', key=b'my_key', value=b'my_valuesssssssiiiiinnnnnnnnnsmy_'

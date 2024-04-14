@@ -13,3 +13,6 @@ RUN apt update \
     && ln -s /usr/local/python3/bin/python3 /usr/bin/python3 \
     && ln -s /usr/local/python3/bin/pip3 /usr/bin/pip3
 
+RUN  /usr/local/python3/bin/python3.9 -m pip install --upgrade pip && \
+     pip3 install --upgrade django==4.1 pymysql==0.9.3 apscheduler faker
+

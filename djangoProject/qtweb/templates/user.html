@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品</title>
+</head>
+
+<body>
+    <form action="/goods/add" method="post" encoding='application/json'>
+        <p>
+            商品名称：<input type="text" name="name">
+        </p>
+        <p>
+            <label for="type">类型</label>
+            <select name="type" id="type">
+                {% for key in goods_types %}
+                    <option value={{ key }}>{{ key }}</option>
+                {% endfor %}
+            </select>
+        </p>
+        <div>
+            <label>标签</label>
+            {% for key in goods_labels %}
+                <div>
+                    <input type="checkbox" name="labels" value={{ key }}/>
+                    <label>{{ key }}</label>
+                </div>
+            {% endfor %}
+        </div>
+        <p>
+        <div>描述：</div>
+        <textarea cols="100" rows="4" name="describe">
+        </textarea>
+        </p>
+        {% csrf_token %}
+        <button type="submit" value="创建"> 创建</button>
+    </form>
+
+</body>
+</html>

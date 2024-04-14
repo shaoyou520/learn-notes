@@ -1,0 +1,3 @@
+helm repo add bigdata-charts https://itzhang89.github.io/bigdata-platfrom-charts
+helm install my-dolphinscheduler bigdata-charts/dolphinscheduler --version 2.0.0
+

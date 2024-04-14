@@ -1,0 +1,73 @@
+
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: django
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: django
+  template:
+    metadata:
+      labels:
+        app: django
+    spec:
+      #添加标签调度
+      #nodeSelector:
+      #  app1: mysql
+      
+      #根据 NodeName 调度 
+      nodeName: node1
+      containers:
+      - name: django
+        image: qtdocker/python3.9.13
+        imagePullPolicy: IfNotPresent
+        command: ["bash", '-c', 'cd /opt/django/qtweb && python3 manage.py runserver 0.0.0.0:8000']
+        ports:
+        - containerPort: 8000
+        volumeMounts:
+        - name: src-data
+          mountPath: /opt/django
+      volumes:
+        - name: src-data
+          hostPath:
+            path: /opt/django
+      restartPolicy: Always
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: django-svc
+  labels:
+    app: django
+spec:
+  ports:
+  - port: 8000
+    protocol: TCP
+    targetPort: 8000
+    name: http
+  selector:
+    app: django
+
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: zeppelin-ingress
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: django
+      http:
+        paths:
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: django-svc
+                port:
+                  number: 8000

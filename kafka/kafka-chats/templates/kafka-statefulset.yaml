@@ -6,7 +6,7 @@ metadata:
     app: {{ include "kafka-chats.fullname" . }}
 spec:
   serviceName: {{ include "kafka-chats.fullname" . }}
-  replicas: 1
+  replicas: 4
   selector:
     matchLabels:
       app: {{ include "kafka-chats.fullname" . }}
@@ -15,6 +15,16 @@ spec:
       labels:
         app: {{ include "kafka-chats.fullname" . }}
     spec:
+      affinity:
+        podAntiAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+          - labelSelector:
+              matchExpressions:
+              - key: app
+                operator: In
+                values:
+                - {{ include "kafka-chats.fullname" . }}
+            topologyKey: "kubernetes.io/hostname"
       containers:
         - name: kafka
           image: qtdocker/kafka:3.5.1_2.12
@@ -30,6 +40,10 @@ spec:
               mountPath: /opt/server.properties
               subPath: server.properties
               readOnly: true
+            - name: data-dir
+              mountPath: /opt/kafka/data
+            - name: log-dir
+              mountPath: /opt/kafka/logs
             - name: start-kafka-sh
               mountPath: /script/start-kafka.sh
               subPath: start-kafka.sh
@@ -40,6 +54,12 @@ spec:
               protocol: TCP
 
       volumes:
+        - name: data-dir
+          hostPath:
+            path: /opt/kafka/data
+        - name: log-dir
+          hostPath:
+            path: /opt/kafka/logs
         - name: server-properties
           configMap:
             name: {{ include "kafka-chats.fullname" . }}

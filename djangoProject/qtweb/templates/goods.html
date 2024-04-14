@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>商品</title>
+    <script type="application/javascript">
+        $(document).ready(function() {
+  $('#mySelect').change(function() {
+    fetch('goods')
+  });
+});
+    </script>
+</head>
+<body>
+<table border="1" width="40%" align="center">
+    <tr>
+        <td>uuid</td>
+        <td>名称</td>
+        <td>类型</td>
+        <td>状态</td>
+        <td>客户名称</td>
+        <td>创建时间</td>
+        <td>更新时间</td>
+    </tr>
+    {% for d in datas %}
+        <tr>
+            <td>{{ d.uuid }}</td>
+            <td>{{ d.name }}</td>
+            <td>{{ d.type }}</td>
+            <td>{{ d.status }}</td>
+            <td>{{ d.custom_name }}</td>
+            <td>{{ d.create_time }}</td>
+            <td>{{ d.update_time }}</td>
+        </tr>
+    {% endfor %}
+</table>
+<div><br/></div>
+
+  <div>
+      数量：
+     <select id="page_size" name="pageSize">
+         <option {% if pageSize == 10 %} selected {% endif %}>10</option>
+         <option {% if pageSize == 30 %} selected {% endif %}>30</option>
+         <option {% if pageSize == 50 %} selected {% endif %}>50</option>
+         <option {% if pageSize == 100 %} selected {% endif %}>100</option>
+      </select>
+    <button onclick="skip('hp')">首页</button>
+    <button onclick="skip('pp')"> 上一页</button>
+    <span id="cpn">第1页</span>
+    <input id="cpnr" type="hidden">
+    <span>/</span>
+    <span id="tpn">共3页</span>
+    <input id="mpnr" type="hidden">
+    <button onclick="skip('np')">下一页</button>
+    <button onclick="skip('lp')">最后一页</button>
+    <input id="spn" type="text" value="1"/>
+    <button onclick="skip('ssp')"> 跳转</button>
+  </div>
+
+
+
+</body>
+
+</html>
