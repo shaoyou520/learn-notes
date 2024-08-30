@@ -58,6 +58,7 @@ data:
     cluster_init() {
       if [ $IS_INSTALLED = 0 ] && [ $NUMBET = 5 ]; then
         echo " init cluster"
+        sleep 20s
         node0=`dig +short redis-0.redis-svc.default.svc.cluster.local`
         node1=`dig +short redis-1.redis-svc.default.svc.cluster.local`
         node2=`dig +short redis-2.redis-svc.default.svc.cluster.local`
