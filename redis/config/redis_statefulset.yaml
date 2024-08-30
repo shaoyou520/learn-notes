@@ -1,0 +1,164 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: redis-cm
+  labels:
+    app: redis
+data:
+  redis.conf: |+
+    bind 0.0.0.0
+    port 6379
+    daemonize yes
+    pidfile "/opt/redis-7.4.0/datas/redis_{NUMBET}/redis.pid"
+    logfile "/opt/redis-7.4.0/datas/redis_{NUMBET}/redis.log"
+    databases 16
+    dir "/opt/redis-7.4.0/datas/redis_{NUMBET}/data"
+    
+    #replicaof 192.168.182.110 6379
+    masterauth "123456"
+    requirepass "123456"
+    appendonly yes
+    # 开启集群模式
+    cluster-enabled yes
+    # 虽然此配置的名字叫"集群配置文件"，但是此配置文件不能人工编辑，它是集群节点自动维护的文件，主要用于记录集群中有哪些节点、他们的状态以及一些持久化参数等，方便在重启时恢复这些状态。通常是在收到请求之后这个文件就会被更新。
+    cluster-config-file /opt/redis-7.4.0/datas/redis_{NUMBET}/nodes.conf
+    cluster-node-timeout 15000
+
+  start.sh: |+
+    #!/bin/bash
+    IS_INSTALLED=0
+    update_redis_cluster_ip(){
+      CLUSTER_CONFIG="${REDIS_HOME}/datas/redis_${NUMBET}/nodes.conf"
+
+      if [ -f ${CLUSTER_CONFIG} ]; then
+        IS_INSTALLED=1
+        if [ -z "${POD_IP}" ]; then
+          echo "Unable to determine Pod IP address!"
+          exit 1
+        fi
+        echo "Updating my IP to ${POD_IP} in ${CLUSTER_CONFIG}"
+        sed -i.bak -e '/myself/ s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/'${POD_IP}'/' ${CLUSTER_CONFIG}
+      else
+        mkdir -p ${REDIS_HOME}/datas/redis_${NUMBET}
+        mkdir -p ${REDIS_HOME}/datas/redis_${NUMBET}/data
+      fi
+    }
+
+    update_redis_config() {
+      HOSTNAME="$(hostname -s)"
+      if [[ $HOSTNAME =~ (.*)-([0-9]+)$ ]]; then
+        NUMBET=${BASH_REMATCH[2]}
+        sed -i 's/{NUMBET}/'${NUMBET}'/g' ${REDIS_HOME}/redis_new.conf
+      else
+        echo "Failed to get index from hostname $HOSTNAME"
+        exit 1
+      fi
+    }
+
+    cluster_init() {
+      if [ $IS_INSTALLED = 0 ] && [ $NUMBET = 5 ]; then
+        echo " init cluster"
+        node0=`dig +short redis-0.redis-svc.default.svc.cluster.local`
+        node1=`dig +short redis-1.redis-svc.default.svc.cluster.local`
+        node2=`dig +short redis-2.redis-svc.default.svc.cluster.local`
+        node3=`dig +short redis-3.redis-svc.default.svc.cluster.local`
+        node4=`dig +short redis-4.redis-svc.default.svc.cluster.local`
+        node5=${POD_IP}
+        echo 'yes' | redis-cli --cluster create ${node0}:6379 ${node1}:6379 \
+        ${node2}:6379 ${node3}:6379 ${node4}:6379 ${node5}:6379 \
+        --cluster-replicas 1 -a 123456
+      else
+        echo "cluster is installes"
+      fi
+    }
+
+    cp ${REDIS_HOME}/redis.conf ${REDIS_HOME}/redis_new.conf
+    update_redis_config
+    update_redis_cluster_ip
+    redis-server ${REDIS_HOME}/redis_new.conf
+    cluster_init
+    tail -f ${REDIS_HOME}/datas/redis_${NUMBET}/redis.log
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis-svc
+  labels:
+    app: redis
+spec:
+  type: NodePort
+  ports:
+  - port: 6379
+    name: client
+    nodePort: 30379
+  selector:
+    app: redis
+
+---
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: redis
+spec:
+  selector:
+    matchLabels:
+      app: redis
+  serviceName: redis-svc
+  replicas: 6
+  template:
+    metadata:
+      labels:
+        app: redis
+    spec:
+      containers:
+      - name: redis
+        image: "qtdocker/redis:7.4.0-amd64"
+        imagePullPolicy: IfNotPresent
+        command: ["/bin/bash", "-c", "bash ${REDIS_HOME}/start.sh"]
+        #        lifecycle:
+        #          postStart:
+        #            exec:
+        #              command: ["/bin/bash", "-c", "/opt/add-cluster.sh"]
+        env:
+          - name: POD_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.podIP
+        readinessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+        livenessProbe:
+          tcpSocket:
+            port: 6379
+          initialDelaySeconds: 15
+          timeoutSeconds: 5
+        volumeMounts:
+        - name: redis-config
+          mountPath: /opt/redis-7.4.0/redis.conf
+          subPath: redis.conf
+        - name: redis-start
+          mountPath: /opt/redis-7.4.0/start.sh
+          subPath: start.sh
+        - name: redis-data
+          mountPath: /opt/redis-7.4.0/datas
+      volumes:
+      - name: redis-config
+        configMap:
+          name: redis-cm
+          items:
+            - key: "redis.conf"
+              path: "redis.conf"
+      - name: redis-data
+        hostPath:
+          path: /opt/redis/data
+      - name: redis-start
+        configMap:
+          name: redis-cm
+          items:
+            - key: "start.sh"
+              path: "start.sh"
+
+
