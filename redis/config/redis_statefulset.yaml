@@ -111,6 +111,8 @@ spec:
       labels:
         app: redis
     spec:
+      # 出去service的环境变量
+      enableServiceLinks: false
       containers:
       - name: redis
         image: "qtdocker/redis:7.4.0-amd64"
