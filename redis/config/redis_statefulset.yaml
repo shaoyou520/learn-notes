@@ -27,53 +27,78 @@ data:
   start.sh: |+
     #!/bin/bash
     IS_INSTALLED=0
-    update_redis_cluster_ip(){
-      CLUSTER_CONFIG="${REDIS_HOME}/datas/redis_${NUMBET}/nodes.conf"
-
-      if [ -f ${CLUSTER_CONFIG} ]; then
-        IS_INSTALLED=1
-        if [ -z "${POD_IP}" ]; then
-          echo "Unable to determine Pod IP address!"
-          exit 1
-        fi
-        echo "Updating my IP to ${POD_IP} in ${CLUSTER_CONFIG}"
-        sed -i.bak -e '/myself/ s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/'${POD_IP}'/' ${CLUSTER_CONFIG}
-      else
-        mkdir -p ${REDIS_HOME}/datas/redis_${NUMBET}
-        mkdir -p ${REDIS_HOME}/datas/redis_${NUMBET}/data
-      fi
-    }
-
-    update_redis_config() {
+    
+    env_init() {
       HOSTNAME="$(hostname -s)"
       if [[ $HOSTNAME =~ (.*)-([0-9]+)$ ]]; then
         NUMBET=${BASH_REMATCH[2]}
-        sed -i 's/{NUMBET}/'${NUMBET}'/g' ${REDIS_HOME}/redis_new.conf
+        CLUSTER_CONFIG="${REDIS_HOME}/datas/redis_${NUMBET}/nodes.conf"
+        node_conf_bak=${CLUSTER_CONFIG}.bak
+    
+        if [ -f ${CLUSTER_CONFIG} ]; then
+          IS_INSTALLED=1
+        else
+          mkdir -p ${REDIS_HOME}/datas/redis_${NUMBET}/data 
+        fi
       else
         echo "Failed to get index from hostname $HOSTNAME"
         exit 1
       fi
     }
 
+    update_redis_config() {
+      cp ${REDIS_HOME}/redis.conf ${REDIS_HOME}/redis_new.conf
+      sed -i 's/{NUMBET}/'${NUMBET}'/g' ${REDIS_HOME}/redis_new.conf
+    }
+    
+    update_redis_cluster_ip() {
+      if [ $IS_INSTALLED = 1 ]; then
+        if [ $NUMBET < 5 ]; then
+          sed -i '/myself/ s/[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}\.[0-9]\{1,3\}/'${POD_IP}'/' ${CLUSTER_CONFIG}
+        else
+          echo "cluster restart"
+          get_node_ips
+          echo y | cp $node_conf_bak nodes_new.conf
+          sed -i 's/{node0}/'${node0}'/g' nodes_new.conf
+          sed -i 's/{node1}/'${node1}'/g' nodes_new.conf
+          sed -i 's/{node2}/'${node2}'/g' nodes_new.conf
+          sed -i 's/{node3}/'${node3}'/g' nodes_new.conf
+          sed -i 's/{node4}/'${node4}'/g' nodes_new.conf
+          sed -i 's/{node5}/'${node5}'/g' nodes_new.conf
+          echo y | cp nodes_new.conf $CLUSTER_CONFIG
+        fi
+      fi
+    }
+    
+    get_node_ips() {
+      node0=`dig +short redis-0.redis-svc.default.svc.cluster.local`
+      node1=`dig +short redis-1.redis-svc.default.svc.cluster.local`
+      node2=`dig +short redis-2.redis-svc.default.svc.cluster.local`
+      node3=`dig +short redis-3.redis-svc.default.svc.cluster.local`
+      node4=`dig +short redis-4.redis-svc.default.svc.cluster.local`
+      node5=${POD_IP}
+    }
+
     cluster_init() {
-      if [ $IS_INSTALLED = 0 ] && [ $NUMBET = 5 ]; then
-        echo " init cluster"
+      if [ $NUMBET = 5 ] && [ $IS_INSTALLED = 0 ]; then
+        get_node_ips
         sleep 20s
-        node0=`dig +short redis-0.redis-svc.default.svc.cluster.local`
-        node1=`dig +short redis-1.redis-svc.default.svc.cluster.local`
-        node2=`dig +short redis-2.redis-svc.default.svc.cluster.local`
-        node3=`dig +short redis-3.redis-svc.default.svc.cluster.local`
-        node4=`dig +short redis-4.redis-svc.default.svc.cluster.local`
-        node5=${POD_IP}
+        echo " init cluster"
         echo 'yes' | redis-cli --cluster create ${node0}:6379 ${node1}:6379 \
         ${node2}:6379 ${node3}:6379 ${node4}:6379 ${node5}:6379 \
         --cluster-replicas 1 -a 123456
+        cp $CLUSTER_CONFIG $node_conf_bak
+        sed -i 's/'${node0}'/{node0}/g' $node_conf_bak
+        sed -i 's/'${node1}'/{node1}/g' $node_conf_bak
+        sed -i 's/'${node2}'/{node2}/g' $node_conf_bak
+        sed -i 's/'${node3}'/{node3}/g' $node_conf_bak
+        sed -i 's/'${node4}'/{node4}/g' $node_conf_bak
+        sed -i 's/'${node5}'/{node5}/g' $node_conf_bak
       else
-        echo "cluster is installes"
+        echo "not end node"
       fi
     }
-
-    cp ${REDIS_HOME}/redis.conf ${REDIS_HOME}/redis_new.conf
+    env_init
     update_redis_config
     update_redis_cluster_ip
     redis-server ${REDIS_HOME}/redis_new.conf
