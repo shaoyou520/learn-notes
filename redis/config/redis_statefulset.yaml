@@ -16,6 +16,7 @@ data:
     
     #replicaof 192.168.182.110 6379
     masterauth "123456"
+    cluster-require-full-coverage no
     requirepass "123456"
     appendonly yes
     # 开启集群模式
