@@ -16,6 +16,9 @@ data:
     
     #replicaof 192.168.182.110 6379
     masterauth "123456"
+    cluster-announce-ip {{ master_ip }}
+    cluster-announce-port 3037{NUMBET}
+    cluster-announce-bus-port 3137{NUMBET}
     cluster-require-full-coverage no
     requirepass "123456"
     appendonly yes
@@ -50,6 +53,7 @@ data:
     update_redis_config() {
       cp ${REDIS_HOME}/redis.conf ${REDIS_HOME}/redis_new.conf
       sed -i 's/{NUMBET}/'${NUMBET}'/g' ${REDIS_HOME}/redis_new.conf
+      sed -i 's/{NODEIP}/'${NODE_IP}'/g' ${REDIS_HOME}/redis_new.conf
     }
     
     update_redis_cluster_ip() {
@@ -85,8 +89,9 @@ data:
         get_node_ips
         sleep 20s
         echo " init cluster"
-        echo 'yes' | redis-cli --cluster create ${node0}:6379 ${node1}:6379 \
-        ${node2}:6379 ${node3}:6379 ${node4}:6379 ${node5}:6379 \
+        node="122.51.3.28"
+        echo 'yes' | redis-cli --cluster create ${node}:30370 ${node}:30371 \
+        ${node}:30372 ${node}:30373 ${node}:30374 ${node}:30375 \
         --cluster-replicas 1 -a 123456
         cp $CLUSTER_CONFIG $node_conf_bak
         sed -i 's/'${node0}'/{node0}/g' $node_conf_bak
@@ -117,10 +122,123 @@ spec:
   type: NodePort
   ports:
   - port: 6379
-    name: client
-    nodePort: 30379
+    name: client-port
   selector:
     app: redis
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis0-svc
+  labels:
+    app: redis
+spec:
+  type: NodePort
+  ports:
+  - port: 6379
+    name: client-port
+    nodePort: 30370
+  - port: 16379
+    name: bus-port
+    nodePort: 31370
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-0
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis1-svc
+  labels:
+    app: redis
+spec:
+  type: NodePort
+  ports:
+  - port: 6379
+    name: client-port
+    nodePort: 30371
+  - port: 16379
+    name: bus-port
+    nodePort: 31371
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-1
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis2-svc
+  labels:
+    app: redis
+spec:
+  type: NodePort
+  ports:
+  - port: 6379
+    name: client-port
+    nodePort: 30372
+  - port: 16379
+    name: bus-port
+    nodePort: 31372
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-2
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis3-svc
+  labels:
+    app: redis
+spec:
+  type: NodePort
+  ports:
+  - port: 6379
+    name: client-port
+    nodePort: 30373
+  - port: 16379
+    name: bus-port
+    nodePort: 31373
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-3
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis4-svc
+  labels:
+    app: redis
+spec:
+  type: NodePort
+  ports:
+  - port: 6379
+    name: client-port
+    nodePort: 30374
+  - port: 16379
+    name: bus-port
+    nodePort: 31374
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-4
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: redis5-svc
+  labels:
+    app: redis
+spec:
+  type: NodePort
+  ports:
+  - port: 6379
+    name: client-port
+    nodePort: 30375
+  - port: 16379
+    name: bus-port
+    nodePort: 31375
+  selector:
+    statefulset.kubernetes.io/pod-name: redis-5
 
 ---
 apiVersion: apps/v1
@@ -154,6 +272,10 @@ spec:
             valueFrom:
               fieldRef:
                 fieldPath: status.podIP
+          - name: NODE_IP
+            valueFrom:
+              fieldRef:
+                fieldPath: status.hostIP
         readinessProbe:
           tcpSocket:
             port: 6379
