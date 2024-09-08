@@ -2,7 +2,6 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: promethus-ingress
-  namespace: monitoring
 spec:
   ingressClassName: nginx
   rules:
@@ -23,9 +22,9 @@ spec:
             path: "/"
             backend:
               service:
-                name: prometheus-k8s
+                name: my-prometheus-server
                 port:
-                  number: 9090
+                  number: 80
     - host: grafana.shaoyou.store
       http:
         paths:

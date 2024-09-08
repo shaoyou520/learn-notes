@@ -1,0 +1,30 @@
+
+redis-cli -h redis-cluster-alpha-leader-0.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-ip 192.168.0.163
+redis-cli -h redis-cluster-alpha-leader-0.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-port 31000
+redis-cli -h redis-cluster-alpha-leader-0.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-bus-port 32000
+redis-cli -h redis-cluster-alpha-leader-0.redis-cluster-alpha-leader.default -p 6379 config rewrite
+
+redis-cli -h redis-cluster-alpha-leader-1.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-ip 192.168.0.163
+redis-cli -h redis-cluster-alpha-leader-1.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-port 31001
+redis-cli -h redis-cluster-alpha-leader-1.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-bus-port 32001
+redis-cli -h redis-cluster-alpha-leader-1.redis-cluster-alpha-leader.default -p 6379 config rewrite
+
+redis-cli -h redis-cluster-alpha-leader-2.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-ip 192.168.0.163
+redis-cli -h redis-cluster-alpha-leader-2.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-port 31002
+redis-cli -h redis-cluster-alpha-leader-2.redis-cluster-alpha-leader.default -p 6379 config set cluster-announce-bus-port 32002
+redis-cli -h redis-cluster-alpha-leader-2.redis-cluster-alpha-leader.default -p 6379 config rewrite
+
+redis-cli -h redis-cluster-alpha-follower-0.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-ip 192.168.0.163
+redis-cli -h redis-cluster-alpha-follower-0.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-port 31100
+redis-cli -h redis-cluster-alpha-follower-0.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-bus-port 32100
+redis-cli -h redis-cluster-alpha-follower-0.redis-cluster-alpha-follower.default -p 6379 config rewrite
+
+redis-cli -h redis-cluster-alpha-follower-1.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-ip 192.168.0.163
+redis-cli -h redis-cluster-alpha-follower-1.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-port 31101
+redis-cli -h redis-cluster-alpha-follower-1.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-bus-port 32101
+redis-cli -h redis-cluster-alpha-follower-1.redis-cluster-alpha-follower.default -p 6379 config rewrite
+
+redis-cli -h redis-cluster-alpha-follower-2.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-ip 192.168.0.163
+redis-cli -h redis-cluster-alpha-follower-2.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-port 31102
+redis-cli -h redis-cluster-alpha-follower-2.redis-cluster-alpha-follower.default -p 6379 config set cluster-announce-bus-port 32102
+redis-cli -h redis-cluster-alpha-follower-2.redis-cluster-alpha-follower.default -p 6379 config rewrite
